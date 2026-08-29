@@ -21,7 +21,7 @@
 <div class="stats-group">
 <div class="stats-title">PLAYER STATS</div>
 <div class="stat-item"><span>最高スコア</span><span id="stat-high-score" class="stat-val">0</span></div>
-<div class="stat-item"><span>解放ステージ</span><span id="stat-unlocked" class="stat-val">1/11</span></div>
+<div class="stat-item"><span>解放ステージ</span><span id="stat-unlocked" class="stat-val">1/20</span></div>
 <div class="stat-item"><span>クリア回数</span><span id="stat-cleared-count" class="stat-val">0</span></div>
 </div>
 </div>
@@ -33,7 +33,7 @@
 <main class="main-panel">
 <div style="border-bottom:2px solid var(--border-color);padding-bottom:10px;margin-bottom:10px;">
 <h2 style="font-size:18px;letter-spacing:1px;">STAGE SELECT</h2>
-<p style="font-size:11px;color:var(--text-muted);margin-top:4px;">ステージをクリアすると次のステージが解放されます。</p>
+<p style="font-size:11px;color:var(--text-muted);margin-top:4px;">ステージをクリアすると次のステージが解放されます。（全20ステージ）</p>
 </div>
 <div id="stage-grid-container" class="stage-grid"></div>
 </main>
@@ -82,8 +82,8 @@
 "use strict";
 const GAME_WIDTH=800;
 const GAME_HEIGHT=600;
-const SAVE_KEY="retro_brick_breaker_save_v2";
-const COLORS={accent:"#00ffcc",white:"#ffffff",danger:"#ff4a5a",pink:"#ff00aa",yellow:"#ffff00",purple:"#aa00ff",blue:"#00bfff"};
+const SAVE_KEY="retro_brick_breaker_save_v3";
+const COLORS={accent:"#00ffcc",white:"#ffffff",danger:"#ff4a5a",pink:"#ff00aa",yellow:"#ffff00",purple:"#aa00ff",blue:"#00bfff",gold:"#ffd700",dark:"#111119"};
 const STAGES={
 1:{name:"NORMAL FIELD",rows:4,cols:9,description:"基本のブロック配置。操作に慣れよう。"},
 2:{name:"DURABLE WALL",rows:5,cols:9,description:"2回叩かないと壊れない頑丈なブロック。"},
@@ -95,9 +95,18 @@ const STAGES={
 8:{name:"SPEED HELL",rows:6,cols:9,description:"スピードアップブロックが大量に潜む難所。"},
 9:{name:"FORTRESS",rows:6,cols:9,description:"幾重にも重なる要塞のようなブロック群。"},
 10:{name:"FINAL CASTLE",rows:6,cols:9,description:"全種類の特殊ブロックが登場する最終関門。"},
-11:{name:"RANDOM HELL",rows:6,cols:9,description:"【ランダム】配置も耐久も毎回変わる狂気のステージ！"}
+11:{name:"RANDOM HELL",rows:6,cols:9,description:"【ランダム】配置も耐久も毎回変わる狂気のステージ！"},
+12:{name:"CEILING TRAP",rows:5,cols:9,description:"【上下挟み撃ち】上に抜けてもミスになるハードゾーン。"},
+13:{name:"PENALTY LAB",rows:6,cols:9,description:"【ペナルティ】天井に当たるとハートが1個減る危険エリア。"},
+14:{name:"DOUBLE DANGER",rows:6,cols:9,description:"【上下制限】上下どちらも危険な超緊張ステージ。"},
+15:{name:"VOID CORRIDOR",rows:6,cols:9,description:"【暗闇】ボールが当たると視界が暗くなるブラインド地帯。"},
+16:{name:"GOLDEN RUSH",rows:6,cols:9,description:"【ゴールド】高得点ブロックが並ぶが上下の壁にも注意。"},
+17:{name:"MAZE OF PAIN",rows:6,cols:9,description:"【迷宮】難所が入り組む上下制限ステージ。"},
+18:{name:"TITAN FORT",rows:6,cols:9,description:"【巨壁】高耐久ブロックと上下制限のダブルプレッシャー。"},
+19:{name:"ULTIMATE CEILING",rows:6,cols:9,description:"【極限天井】ミスが許されない上下挟み撃ちの難関。"},
+20:{name:"VOID APOCALYPSE",rows:6,cols:9,description:"【終焉】すべての罠が牙をむく最終試練！"}
 };
-const TOTAL_STAGES=11;
+const TOTAL_STAGES=20;
 const $=id=>document.getElementById(id);
 const DOM={
 container:$("game-container"),
@@ -122,27 +131,32 @@ seValue:$("val-se-volume"),
 shake:$("chk-shake")
 };
 const ctx=DOM.canvas.getContext("2d");
-const state={highScore:0,unlockedStage:1,clearedCount:0,currentStage:1,score:0,lives:3,playing:false,paused:false,screenShake:0,configSource:"home",lastTime:0};
-const paddle={x:350,y:550,width:100,baseWidth:100,height:15,speed:520,laserTimer:0};
+const state={highScore:0,unlockedStage:1,clearedCount:0,currentStage:1,score:0,lives:3,playing:false,paused:false,screenShake:0,configSource:"home",lastTime:0,blindTimer:0,flashTimer:0};
+const paddle={x:350,y:550,width:100,baseWidth:100,height:15,laserTimer:0,laserMaxTime:0};
+const activeBuffs={expand:0,expandMax:0,laser:0,laserMax:0};
 let balls=[];
 let bricks=[];
 let items=[];
 let particles=[];
+let floatingTexts=[];
 let lasers=[];
 let stickyBall=true;
 const input={left:false,right:false,pointerActive:false,pointerX:GAME_WIDTH/2,keyboardActive:false};
+
 class SoundEngine{
-constructor(){this.ctx=null;this.bgmGain=null;this.seGain=null;this.bgmInterval=null;this.bgmVolume=0.3;this.seVolume=0.5;this.bgmStep=0;this.playingBGM=false;}
+constructor(){this.ctx=null;this.bgmGain=null;this.seGain=null;this.bgmInterval=null;this.bgmVolume=0.3;this.seVolume=0.7;this.bgmStep=0;this.playingBGM=false;}
 init(){if(!this.ctx){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;this.ctx=new AudioContext();this.bgmGain=this.ctx.createGain();this.seGain=this.ctx.createGain();this.bgmGain.connect(this.ctx.destination);this.seGain.connect(this.ctx.destination);this.updateVolumes();}if(this.ctx.state==="suspended"){this.ctx.resume();}}
 updateVolumes(){if(!this.ctx)return;const now=this.ctx.currentTime;this.bgmGain.gain.setValueAtTime(this.bgmVolume,now);this.seGain.gain.setValueAtTime(this.seVolume,now);}
 setBGMVolume(value){this.bgmVolume=value;this.updateVolumes();}
 setSEVolume(value){this.seVolume=value;this.updateVolumes();}
-tone(frequency,type,duration,isSE=true){this.init();if(!this.ctx)return;try{const oscillator=this.ctx.createOscillator();const gain=this.ctx.createGain();const output=isSE?this.seGain:this.bgmGain;const now=this.ctx.currentTime;oscillator.type=type;oscillator.frequency.setValueAtTime(frequency,now);gain.gain.setValueAtTime(0.8,now);gain.gain.exponentialRampToValueAtTime(0.001,now+duration);oscillator.connect(gain);gain.connect(output);oscillator.start(now);oscillator.stop(now+duration);}catch(error){console.warn("Audio error:",error);}}
-playSE(type){this.init();switch(type){case "bounce":this.tone(300,"triangle",0.08);break;case "paddle":this.tone(450,"triangle",0.1);break;case "break":this.tone(180,"sawtooth",0.12);break;case "break_hard":this.tone(120,"sawtooth",0.2);setTimeout(()=>{this.tone(200,"sawtooth",0.1);},50);break;case "powerup":this.tone(400,"sine",0.1);setTimeout(()=>{this.tone(600,"sine",0.1);},80);setTimeout(()=>{this.tone(800,"sine",0.15);},160);break;case "laser":this.tone(880,"square",0.05);break;case "gameover":this.tone(300,"sawtooth",0.3);setTimeout(()=>{this.tone(240,"sawtooth",0.3);},250);setTimeout(()=>{this.tone(180,"sawtooth",0.5);},500);break;case "clear":[523.25,659.25,783.99,1046.5].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"sine",0.15);},index*120);});break;}}
+tone(frequency,type,duration,isSE=true,pitchSlide=0){this.init();if(!this.ctx)return;try{const oscillator=this.ctx.createOscillator();const gain=this.ctx.createGain();const output=isSE?this.seGain:this.bgmGain;const now=this.ctx.currentTime;oscillator.type=type;oscillator.frequency.setValueAtTime(frequency,now);if(pitchSlide!==0){oscillator.frequency.exponentialRampToValueAtTime(Math.max(20,frequency+pitchSlide),now+duration);}gain.gain.setValueAtTime(1.0,now);gain.gain.exponentialRampToValueAtTime(0.001,now+duration);oscillator.connect(gain);gain.connect(output);oscillator.start(now);oscillator.stop(now+duration);}catch(error){console.warn("Audio error:",error);}}
+playSE(type){this.init();switch(type){case "bounce":this.tone(360,"sine",0.06,true,80);break;case "paddle":this.tone(520,"triangle",0.09,true,150);break;case "break":this.tone(440,"square",0.1,true,-200);setTimeout(()=>{this.tone(880,"sine",0.08,true,0);},30);break;case "break_hard":this.tone(130,"sawtooth",0.2,true,-80);setTimeout(()=>{this.tone(220,"square",0.12,true,-50);},40);setTimeout(()=>{this.tone(350,"triangle",0.1,true,100);},90);break;case "powerup":[400,550,700,950].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"sine",0.12,true,50);},index*60);});break;case "laser":this.tone(960,"sawtooth",0.06,true,-400);break;case "lost_ball":// ライフ・ボールロスト時の重厚な破裂＆落下音
+this.tone(180,"sawtooth",0.25,true,-120);setTimeout(()=>{this.tone(100,"square",0.35,true,-80);},80);setTimeout(()=>{this.tone(60,"sawtooth",0.4,true,-40);},160);break;case "penalty":this.tone(140,"sawtooth",0.25,true,-60);setTimeout(()=>{this.tone(90,"sawtooth",0.3,true,-40);},120);break;case "gameover":this.tone(280,"sawtooth",0.3,true,-100);setTimeout(()=>{this.tone(210,"sawtooth",0.3,true,-80);},220);setTimeout(()=>{this.tone(130,"sawtooth",0.6,true,-50);},450);break;case "clear":[523.25,659.25,783.99,1046.5,1318.5].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"triangle",0.2,true,0);},index*100);});break;}}
 startBGM(){this.init();if(!this.ctx||this.playingBGM)return;this.playingBGM=true;const melody=[261.63,293.66,329.63,349.23,392.00,349.23,329.63,293.66];this.bgmInterval=setInterval(()=>{if(!this.ctx||this.ctx.state==="suspended")return;const frequency=melody[this.bgmStep%melody.length];this.tone(frequency/2,"square",0.18,false);this.bgmStep++;},250);}
 stopBGM(){if(this.bgmInterval){clearInterval(this.bgmInterval);this.bgmInterval=null;}this.playingBGM=false;}
 }
 const sound=new SoundEngine();
+
 function loadGameData(){const saved=localStorage.getItem(SAVE_KEY);if(!saved){updateHomeHUD();return;}try{const data=JSON.parse(saved);state.highScore=Number(data.highScore)||0;state.unlockedStage=Math.min(TOTAL_STAGES,Math.max(1,Number(data.unlockedStage)||1));state.clearedCount=Number(data.clearedCount)||0;if(data.bgmVol!==undefined){sound.bgmVolume=Number(data.bgmVol);DOM.sliderBgm.value=Math.round(sound.bgmVolume*100);}if(data.seVol!==undefined){sound.seVolume=Number(data.seVol);DOM.sliderSe.value=Math.round(sound.seVolume*100);}DOM.shake.checked=data.shake!==false;}catch(error){console.warn("Save data could not be loaded:",error);}updateVolumeLabels();updateHomeHUD();}
 function saveGameData(){const data={highScore:state.highScore,unlockedStage:state.unlockedStage,clearedCount:state.clearedCount,bgmVol:sound.bgmVolume,seVol:sound.seVolume,shake:DOM.shake.checked};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}
 function updateHomeHUD(){DOM.highScore.textContent=state.highScore;DOM.unlocked.textContent=`${state.unlockedStage}/${TOTAL_STAGES}`;DOM.clearedCount.textContent=state.clearedCount;}
@@ -150,33 +164,410 @@ function updateVolumeLabels(){DOM.bgmValue.textContent=`${DOM.sliderBgm.value}%`
 function renderStageGrid(){DOM.stageGrid.innerHTML="";for(let stage=1;stage<=TOTAL_STAGES;stage++){const config=STAGES[stage];const locked=stage>state.unlockedStage;const cleared=stage<state.unlockedStage||(stage===TOTAL_STAGES&&state.clearedCount>0);const card=document.createElement("div");card.className="stage-card";if(locked)card.classList.add("locked");if(cleared)card.classList.add("cleared");const badge=locked?"🔒 ロック":cleared?"★ クリア済":"挑戦可能";card.innerHTML=`<div class="stage-badge">${badge}</div><div class="stage-num">${stage}</div><div class="stage-name">${config.name}</div><div class="stage-description">${config.description}</div>`;if(!locked){card.addEventListener("click",()=>{sound.init();startStage(stage);});}DOM.stageGrid.appendChild(card);}}
 function showGameScreen(){DOM.home.classList.remove("active");DOM.game.classList.add("active");DOM.hud.style.display="flex";}
 function showHomeScreen(){DOM.game.classList.remove("active");DOM.home.classList.add("active");DOM.hud.style.display="none";renderStageGrid();updateHomeHUD();}
-function createBrick(stage,row,col){let type="normal";let hp=1;let color=COLORS.accent;if(stage===11){const rand=Math.random();if(rand<0.25){type="hardcore";hp=3;color=COLORS.purple;}else if(rand<0.5){type="durable";hp=2;color=COLORS.pink;}else if(rand<0.7){type="speed";color=COLORS.yellow;}else if(rand<0.85){type="normal";hp=1;color=COLORS.blue;}else{return null;}}else if(stage===2){if(row%2===1){type="durable";hp=2;color=COLORS.pink;}}else if(stage===3){if((row+col)%3===0){type="speed";color=COLORS.yellow;}}else if(stage===4){if(row<2){type="hardcore";hp=3;color=COLORS.purple;}else if(row<4){type="durable";hp=2;color=COLORS.pink;}}else if(stage===5){const centerCol=4;const dist=Math.abs(col-centerCol);if(row>=dist){if(row===0){type="hardcore";hp=3;color=COLORS.purple;}else if(row<=2){type="durable";hp=2;color=COLORS.pink;}else{type="normal";hp=1;color=COLORS.accent;}}else{return null;}}else if(stage===6){if((row+col)%2===0){type="speed";color=COLORS.yellow;}else{type="durable";hp=2;color=COLORS.pink;}}else if(stage===7){if(row%2===0&&col%2===0){type="hardcore";hp=3;color=COLORS.purple;}else{type="durable";hp=2;color=COLORS.pink;}}else if(stage===8){if(col===2||col===6){type="speed";color=COLORS.yellow;}else if(row===0||row===5){type="durable";hp=2;color=COLORS.pink;}}else if(stage===9){if(col===0||col===8||row===0){type="hardcore";hp=3;color=COLORS.purple;}else if(row===1||row===2){type="durable";hp=2;color=COLORS.pink;}else{type="speed";color=COLORS.yellow;}}else if(stage===10){const random=Math.random();if(random>0.8){type="hardcore";hp=3;color=COLORS.purple;}else if(random>0.6){type="durable";hp=2;color=COLORS.pink;}else if(random>0.4){type="speed";color=COLORS.yellow;}}const width=74;const height=22;const padding=10;const offsetTop=60;const offsetLeft=28;return{x:offsetLeft+col*(width+padding),y:offsetTop+row*(height+padding),width,height,type,hp,maxHp:hp,color,alive:true};}
+
+function createBrick(stage,row,col){
+let type="normal";let hp=1;let color=COLORS.accent;
+if(stage===11){
+const rand=Math.random();
+if(rand<0.25){type="hardcore";hp=3;color=COLORS.purple;}
+else if(rand<0.5){type="durable";hp=2;color=COLORS.pink;}
+else if(rand<0.7){type="speed";color=COLORS.yellow;}
+else if(rand<0.85){type="normal";hp=1;color=COLORS.blue;}
+else{return null;}
+}else if(stage>=12){
+const mod=(row+col)%5;
+if(stage>=15&&mod===0){type="blind";hp=1;color=COLORS.dark;}
+else if(stage>=16&&mod===1){type="gold";hp=1;color=COLORS.gold;}
+else if(mod===2){type="durable";hp=2;color=COLORS.pink;}
+else if(mod===3){type="hardcore";hp=3;color=COLORS.purple;}
+else if(mod===4){type="speed";color=COLORS.yellow;}
+else{type="normal";hp=1;color=COLORS.blue;}
+}else if(stage===2){if(row%2===1){type="durable";hp=2;color=COLORS.pink;}}
+else if(stage===3){if((row+col)%3===0){type="speed";color=COLORS.yellow;}}
+else if(stage===4){if(row<2){type="hardcore";hp=3;color=COLORS.purple;}else if(row<4){type="durable";hp=2;color=COLORS.pink;}}
+else if(stage===5){const centerCol=4;const dist=Math.abs(col-centerCol);if(row>=dist){if(row===0){type="hardcore";hp=3;color=COLORS.purple;}else if(row<=2){type="durable";hp=2;color=COLORS.pink;}else{type="normal";hp=1;color=COLORS.accent;}}else{return null;}}
+else if(stage===6){if((row+col)%2===0){type="speed";color=COLORS.yellow;}else{type="durable";hp=2;color=COLORS.pink;}}
+else if(stage===7){if(row%2===0&&col%2===0){type="hardcore";hp=3;color=COLORS.purple;}else{type="durable";hp=2;color=COLORS.pink;}}
+else if(stage===8){if(col===2||col===6){type="speed";color=COLORS.yellow;}else if(row===0||row===5){type="durable";hp=2;color=COLORS.pink;}}
+else if(stage===9){if(col===0||col===8||row===0){type="hardcore";hp=3;color=COLORS.purple;}else if(row===1||row===2){type="durable";hp=2;color=COLORS.pink;}else{type="speed";color=COLORS.yellow;}}
+else if(stage===10){const random=Math.random();if(random>0.8){type="hardcore";hp=3;color=COLORS.purple;}else if(random>0.6){type="durable";hp=2;color=COLORS.pink;}else if(random>0.4){type="speed";color=COLORS.yellow;}}
+
+const width=74;const height=22;const padding=10;const offsetTop=60;const offsetLeft=28;
+return{x:offsetLeft+col*(width+padding),y:offsetTop+row*(height+padding),width,height,type,hp,maxHp:hp,color,alive:true,hitAnim:0};
+}
 function createLevelBricks(stage){const config=STAGES[stage];const result=[];for(let row=0;row<config.rows;row++){for(let col=0;col<config.cols;col++){const brick=createBrick(stage,row,col);if(brick!==null){result.push(brick);}}}if(result.length===0){result.push(createBrick(1,0,0));}return result;}
 function resetBall(){balls=[{x:400,y:540,vx:4,vy:-5,radius:8,speedMultiplier:1}];stickyBall=true;}
-function startStage(stage){state.currentStage=stage;state.score=0;state.lives=3;state.playing=true;state.paused=false;state.screenShake=0;paddle.width=paddle.baseWidth;paddle.laserTimer=0;bricks=createLevelBricks(stage);items=[];particles=[];lasers=[];resetBall();input.left=false;input.right=false;input.keyboardActive=false;showGameScreen();sound.startBGM();}
-function createExplosion(x,y,color,count=8){for(let i=0;i<count;i++){particles.push({x,y,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.5)*6,radius:Math.random()*3+1,color,alpha:1,decay:Math.random()*0.03+0.02});}}
+function startStage(stage){state.currentStage=stage;state.score=0;state.lives=3;state.playing=true;state.paused=false;state.screenShake=0;state.blindTimer=0;state.flashTimer=0;paddle.width=paddle.baseWidth;paddle.laserTimer=0;activeBuffs.expand=0;activeBuffs.laser=0;bricks=createLevelBricks(stage);items=[];particles=[];floatingTexts=[];lasers=[];resetBall();input.left=false;input.right=false;input.keyboardActive=false;showGameScreen();sound.startBGM();}
+
+function createExplosion(x,y,color,count=16,isHard=false){
+const speedFactor=isHard?9:6;
+for(let i=0;i<count;i++){
+const angle=Math.random()*Math.PI*2;
+const speed=Math.random()*speedFactor+2;
+particles.push({
+x,y,
+vx:Math.cos(angle)*speed,
+vy:Math.sin(angle)*speed,
+radius:Math.random()*4+2,
+color,
+alpha:1,
+decay:Math.random()*0.02+0.015,
+shape:Math.random()>0.5?"circle":"rect"
+});
+}
+particles.push({x,y,vx:0,vy:0,radius:5,maxRadius:isHard?60:35,color:"#ffffff",alpha:0.8,decay:0.08,isRing:true});
+}
+
+function addFloatingText(x,y,text,color=COLORS.accent){
+floatingTexts.push({x,y,text,color,alpha:1,vy:-1.5});
+}
+
 function dropItem(x,y){if(Math.random()>=0.25)return;const types=["expand","multiball","laser"];const type=types[Math.floor(Math.random()*types.length)];const colors={expand:"#00ff00",multiball:COLORS.blue,laser:COLORS.danger};items.push({x:x-8,y,type,color:colors[type],speed:150,width:16,height:16});}
-function applyPowerUp(type){state.score+=50;sound.playSE("powerup");switch(type){case "expand":paddle.width=paddle.baseWidth*1.5;setTimeout(()=>{if(state.playing){paddle.width=paddle.baseWidth;}},8000);break;case "multiball":if(balls.length>0){const base=balls[0];balls.push({x:base.x,y:base.y,vx:-base.vx-1,vy:base.vy,radius:8,speedMultiplier:1});balls.push({x:base.x,y:base.y,vx:base.vx+1,vy:base.vy*0.9,radius:8,speedMultiplier:1});}break;case "laser":paddle.laserTimer=6000;break;}}
-function damageBrick(brick){brick.hp--;state.score+=10;if(brick.hp>0){if(brick.hp===2)brick.color="#7700b3";if(brick.hp===1)brick.color="#ff66cc";sound.playSE("bounce");return;}brick.alive=false;createExplosion(brick.x+brick.width/2,brick.y+brick.height/2,brick.color,12);if(DOM.shake.checked)state.screenShake=4;sound.playSE(brick.type==="hardcore"?"break_hard":"break");if(brick.type==="speed"){balls.forEach(ball=>{ball.speedMultiplier=1.6;setTimeout(()=>{if(ball){ball.speedMultiplier=1;}},4000);});}dropItem(brick.x+brick.width/2,brick.y+brick.height/2);}
+function applyPowerUp(type){state.score+=50;sound.playSE("powerup");addFloatingText(GAME_WIDTH/2,300,"+50 SCORE!",COLORS.accent);switch(type){case "expand":paddle.width=paddle.baseWidth*1.5;activeBuffs.expand=8000;activeBuffs.expandMax=8000;break;case "multiball":if(balls.length>0){const base=balls[0];balls.push({x:base.x,y:base.y,vx:-base.vx-1,vy:base.vy,radius:8,speedMultiplier:base.speedMultiplier});balls.push({x:base.x,y:base.y,vx:base.vx+1,vy:base.vy*0.9,radius:8,speedMultiplier:base.speedMultiplier});}break;case "laser":paddle.laserTimer=6000;activeBuffs.laser=6000;activeBuffs.laserMax=6000;break;}}
+
+function damageBrick(brick){
+brick.hp--;
+brick.hitAnim=1.0;
+const pts=(brick.type==="gold"?300:10);
+state.score+=pts;
+addFloatingText(brick.x+brick.width/2,brick.y,`+${pts}`,brick.color);
+
+if(brick.hp>0){
+if(brick.hp===2)brick.color="#7700b3";
+if(brick.hp===1)brick.color="#ff66cc";
+sound.playSE("bounce");
+if(DOM.shake.checked)state.screenShake=2;
+return;
+}
+
+brick.alive=false;
+const isHard=(brick.type==="hardcore"||brick.type==="durable");
+createExplosion(brick.x+brick.width/2,brick.y+brick.height/2,brick.color,isHard?22:14,isHard);
+if(DOM.shake.checked)state.screenShake=isHard?7:4;
+sound.playSE(isHard?"break_hard":"break");
+
+if(brick.type==="speed"){
+balls.forEach(ball=>{ball.speedMultiplier=1.6;setTimeout(()=>{if(ball){ball.speedMultiplier=1;}},4000);});
+addFloatingText(brick.x+brick.width/2,brick.y-15,"SPEED UP!!",COLORS.yellow);
+}
+if(brick.type==="blind"){
+state.blindTimer=3500;
+}
+dropItem(brick.x+brick.width/2,brick.y+brick.height/2);
+}
+
 function allBricksDestroyed(){return !bricks.some(brick=>brick.alive);}
 function updatePaddle(delta){if(input.keyboardActive){if(input.left)paddle.x-=paddle.speed*delta;if(input.right)paddle.x+=paddle.speed*delta;}else if(input.pointerActive){const scale=GAME_WIDTH/DOM.canvas.clientWidth;paddle.x=input.pointerX*scale-paddle.width/2;}paddle.x=Math.max(0,Math.min(GAME_WIDTH-paddle.width,paddle.x));}
-function updateBalls(delta){for(let i=balls.length-1;i>=0;i--){const ball=balls[i];if(stickyBall&&i===0)continue;const multiplier=ball.speedMultiplier;ball.x+=ball.vx*multiplier*delta*60;ball.y+=ball.vy*multiplier*delta*60;if(ball.x-ball.radius<0){ball.x=ball.radius;ball.vx*=-1;sound.playSE("bounce");}if(ball.x+ball.radius>GAME_WIDTH){ball.x=GAME_WIDTH-ball.radius;ball.vx*=-1;sound.playSE("bounce");}if(ball.y-ball.radius<0){ball.y=ball.radius;ball.vy*=-1;sound.playSE("bounce");}if(ball.y-ball.radius>GAME_HEIGHT){balls.splice(i,1);continue;}if(ball.vy>0&&ball.x>paddle.x&&ball.x<paddle.x+paddle.width&&ball.y+ball.radius>paddle.y&&ball.y-ball.radius<paddle.y+paddle.height){ball.y=paddle.y-ball.radius;const relative=(ball.x-(paddle.x+paddle.width/2))/(paddle.width/2);const currentSpeed=Math.sqrt(ball.vx**2+ball.vy**2);ball.vx=relative*5;const vertical=Math.sqrt(Math.max(1,currentSpeed**2-ball.vx**2));ball.vy=-vertical;sound.playSE("paddle");}for(const brick of bricks){if(!brick.alive)continue;const collision=ball.x+ball.radius>brick.x&&ball.x-ball.radius<brick.x+brick.width&&ball.y+ball.radius>brick.y&&ball.y-ball.radius<brick.y+brick.height;if(!collision)continue;const previousX=ball.x-ball.vx*multiplier;const previousY=ball.y-ball.vy*multiplier;if(previousX+ball.radius<=brick.x||previousX-ball.radius>=brick.x+brick.width){ball.vx*=-1;}else{ball.vy*=-1;}damageBrick(brick);break;}}}
-function updateLasers(delta){if(paddle.laserTimer>0){paddle.laserTimer-=delta*1000;if(Math.floor(paddle.laserTimer)%300<delta*1000){lasers.push({x:paddle.x+10,y:paddle.y,vy:-420});lasers.push({x:paddle.x+paddle.width-10,y:paddle.y,vy:-420});sound.playSE("laser");}}for(let i=lasers.length-1;i>=0;i--){const laser=lasers[i];laser.y+=laser.vy*delta;if(laser.y<0){lasers.splice(i,1);continue;}for(const brick of bricks){if(!brick.alive)continue;const hit=laser.x>brick.x&&laser.x<brick.x+brick.width&&laser.y>brick.y&&laser.y<brick.y+brick.height;if(hit){damageBrick(brick);lasers.splice(i,1);break;}}}}
+
+function updateBalls(delta){
+const hasCeilingPenalty=(state.currentStage>=12);
+for(let i=balls.length-1;i>=0;i--){
+const ball=balls[i];
+if(stickyBall&&i===0)continue;
+const multiplier=ball.speedMultiplier;
+ball.x+=ball.vx*multiplier*delta*60;
+ball.y+=ball.vy*multiplier*delta*60;
+
+// ボールの残像（トレイリング）を生成
+particles.push({
+x:ball.x,y:ball.y,
+vx:0,vy:0,
+radius:ball.radius*(0.7+multiplier*0.15),
+color:multiplier>1.2?COLORS.yellow:COLORS.accent,
+alpha:0.5,
+decay:0.06*multiplier,
+shape:"circle"
+});
+
+if(ball.x-ball.radius<0){ball.x=ball.radius;ball.vx*=-1;sound.playSE("bounce");}
+if(ball.x+ball.radius>GAME_WIDTH){ball.x=GAME_WIDTH-ball.radius;ball.vx*=-1;sound.playSE("bounce");}
+
+if(ball.y-ball.radius<0){
+if(hasCeilingPenalty){
+sound.playSE("penalty");
+state.lives--;
+state.flashTimer=0.4;
+createExplosion(ball.x, ball.y, COLORS.danger, 20, true);
+if(DOM.shake.checked)state.screenShake=9;
+addFloatingText(GAME_WIDTH/2,100,"- PENALTY -",COLORS.danger);
+balls.splice(i,1);
+if(state.lives<=0){finishGame(false);return;}
+continue;
+}else{
+ball.y=ball.radius;ball.vy*=-1;sound.playSE("bounce");
+}
+}
+
+if(ball.y-ball.radius>GAME_HEIGHT){
+// ボールが下に落ちてロストしたときの派手な演出と音
+createExplosion(ball.x, GAME_HEIGHT-10, COLORS.danger, 25, true);
+sound.playSE("lost_ball");
+state.flashTimer=0.5;
+balls.splice(i,1);
+continue;
+}
+
+if(ball.vy>0&&ball.x>paddle.x&&ball.x<paddle.x+paddle.width&&ball.y+ball.radius>paddle.y&&ball.y-ball.radius<paddle.y+paddle.height){
+ball.y=paddle.y-ball.radius;
+const relative=(ball.x-(paddle.x+paddle.width/2))/(paddle.width/2);
+const currentSpeed=Math.sqrt(ball.vx**2+ball.vy**2);
+ball.vx=relative*5.5;
+const vertical=Math.sqrt(Math.max(1,currentSpeed**2-ball.vx**2));
+ball.vy=-vertical;
+sound.playSE("paddle");
+}
+for(const brick of bricks){
+if(!brick.alive)continue;
+const collision=ball.x+ball.radius>brick.x&&ball.x-ball.radius<brick.x+brick.width&&ball.y+ball.radius>brick.y&&ball.y-ball.radius<brick.y+brick.height;
+if(!collision)continue;
+const previousX=ball.x-ball.vx*multiplier;
+const previousY=ball.y-ball.vy*multiplier;
+if(previousX+ball.radius<=brick.x||previousX-ball.radius>=brick.x+brick.width){ball.vx*=-1;}else{ball.vy*=-1;}
+damageBrick(brick);
+break;
+}
+}
+}
+
+function updateLasers(delta){
+if(paddle.laserTimer>0){
+paddle.laserTimer-=delta*1000;
+if(Math.floor(paddle.laserTimer)%300<delta*1000){
+lasers.push({x:paddle.x+10,y:paddle.y,vy:-480});
+lasers.push({x:paddle.x+paddle.width-10,y:paddle.y,vy:-480});
+sound.playSE("laser");
+}
+}
+if(activeBuffs.expand>0){
+activeBuffs.expand-=delta*1000;
+if(activeBuffs.expand<=0) paddle.width=paddle.baseWidth;
+}
+if(activeBuffs.laser>0){
+activeBuffs.laser-=delta*1000;
+}
+
+for(let i=lasers.length-1;i>=0;i--){
+const laser=lasers[i];
+laser.y+=laser.vy*delta;
+if(laser.y<0){lasers.splice(i,1);continue;}
+for(const brick of bricks){
+if(!brick.alive)continue;
+const hit=laser.x>brick.x&&laser.x<brick.x+brick.width&&laser.y>brick.y&&laser.y<brick.y+brick.height;
+if(hit){damageBrick(brick);lasers.splice(i,1);break;}
+}
+}
+}
+
 function updateItems(delta){for(let i=items.length-1;i>=0;i--){const item=items[i];item.y+=item.speed*delta;if(item.y>GAME_HEIGHT){items.splice(i,1);continue;}const caught=item.y+item.height>paddle.y&&item.x+item.width>paddle.x&&item.x<paddle.x+paddle.width;if(caught){applyPowerUp(item.type);items.splice(i,1);}}}
-function updateParticles(delta){for(let i=particles.length-1;i>=0;i--){const particle=particles[i];particle.x+=particle.vx*delta*60;particle.y+=particle.vy*delta*60;particle.alpha-=particle.decay*delta*60;if(particle.alpha<=0){particles.splice(i,1);}}}
-function update(delta){if(!state.playing||state.paused)return;if(state.screenShake>0){state.screenShake=Math.max(0,state.screenShake-delta*10);}updatePaddle(delta);if(stickyBall&&balls.length>0){balls[0].x=paddle.x+paddle.width/2;balls[0].y=paddle.y-balls[0].radius;}updateLasers(delta);updateBalls(delta);updateItems(delta);updateParticles(delta);if(balls.length===0){state.lives--;if(state.lives<=0){finishGame(false);return;}paddle.width=paddle.baseWidth;paddle.laserTimer=0;resetBall();}if(allBricksDestroyed()){finishGame(true);}}
+
+function updateParticles(delta){
+for(let i=particles.length-1;i>=0;i--){
+const p=particles[i];
+p.x+=p.vx*delta*60;
+p.y+=p.vy*delta*60;
+p.alpha-=p.decay*delta*60;
+if(p.isRing){
+p.radius+=(p.maxRadius-p.radius)*0.2*delta*60;
+}
+if(p.alpha<=0){particles.splice(i,1);}
+}
+for(let i=floatingTexts.length-1;i>=0;i--){
+const ft=floatingTexts[i];
+ft.y+=ft.vy*delta*60;
+ft.alpha-=0.02*delta*60;
+if(ft.alpha<=0){floatingTexts.splice(i,1);}
+}
+for(const brick of bricks){
+if(brick.hitAnim>0){brick.hitAnim-=delta*5;}
+}
+}
+
+function update(delta){
+if(!state.playing||state.paused)return;
+if(state.screenShake>0){state.screenShake=Math.max(0,state.screenShake-delta*12);}
+if(state.blindTimer>0){state.blindTimer-=delta*1000;}
+if(state.flashTimer>0){state.flashTimer-=delta;}
+updatePaddle(delta);
+if(stickyBall&&balls.length>0){balls[0].x=paddle.x+paddle.width/2;balls[0].y=paddle.y-balls[0].radius;}
+updateLasers(delta);
+updateBalls(delta);
+updateItems(delta);
+updateParticles(delta);
+if(balls.length===0){
+state.lives--;
+if(state.lives<=0){finishGame(false);return;}
+paddle.width=paddle.baseWidth;
+paddle.laserTimer=0;
+activeBuffs.expand=0;
+activeBuffs.laser=0;
+resetBall();
+}
+if(allBricksDestroyed()){finishGame(true);}
+}
+
 function finishGame(won){if(!state.playing)return;state.playing=false;state.paused=false;sound.stopBGM();if(state.score>state.highScore){state.highScore=state.score;}if(won){sound.playSE("clear");DOM.resultTitle.textContent="STAGE CLEAR!";DOM.resultTitle.style.color=COLORS.accent;DOM.resultText.innerHTML=`おめでとうございます！<br>ステージ ${state.currentStage} を突破しました。<br><br>獲得スコア:<span class="highlight">${state.score}</span>`;if(state.currentStage===state.unlockedStage&&state.unlockedStage<TOTAL_STAGES){state.unlockedStage++;}if(state.currentStage===TOTAL_STAGES){state.clearedCount++;}if(state.currentStage<TOTAL_STAGES){DOM.resultAction.style.display="block";DOM.resultAction.textContent="次のステージへ";}else{DOM.resultAction.style.display="none";}}else{sound.playSE("gameover");DOM.resultTitle.textContent="GAME OVER";DOM.resultTitle.style.color=COLORS.danger;DOM.resultText.innerHTML=`パドルが破壊されました。<br><br>最終スコア:<span class="highlight">${state.score}</span>`;DOM.resultAction.style.display="block";DOM.resultAction.textContent="もう一度挑戦";}saveGameData();updateHomeHUD();DOM.resultModal.classList.add("active");}
 function setPaused(paused){if(!state.playing)return;state.paused=paused;if(paused){sound.stopBGM();DOM.pauseModal.classList.add("active");}else{DOM.pauseModal.classList.remove("active");DOM.configModal.classList.remove("active");sound.startBGM();}}
-function drawBricks(){for(const brick of bricks){if(!brick.alive)continue;ctx.fillStyle=brick.color;ctx.fillRect(brick.x,brick.y,brick.width,brick.height);ctx.strokeStyle="rgba(0,0,0,0.3)";ctx.lineWidth=2;ctx.strokeRect(brick.x,brick.y,brick.width,brick.height);}}
-function drawPaddle(){ctx.fillStyle=paddle.laserTimer>0?COLORS.danger:COLORS.white;ctx.fillRect(paddle.x,paddle.y,paddle.width,paddle.height);ctx.fillStyle=COLORS.accent;ctx.fillRect(paddle.x+4,paddle.y+3,paddle.width-8,3);if(paddle.laserTimer>0){ctx.fillStyle=COLORS.danger;ctx.fillRect(paddle.x,paddle.y-6,6,8);ctx.fillRect(paddle.x+paddle.width-6,paddle.y-6,6,8);}}
+
+function drawBricks(){
+for(const brick of bricks){
+if(!brick.alive)continue;
+ctx.save();
+if(brick.hitAnim>0){
+ctx.translate(brick.x+brick.width/2, brick.y+brick.height/2);
+const scale=1+brick.hitAnim*0.15;
+ctx.scale(scale,scale);
+ctx.translate(-(brick.x+brick.width/2), -(brick.y+brick.height/2));
+}
+ctx.fillStyle=brick.color;
+ctx.fillRect(brick.x,brick.y,brick.width,brick.height);
+ctx.strokeStyle="rgba(255,255,255,0.3)";
+ctx.lineWidth=2;
+ctx.strokeRect(brick.x,brick.y,brick.width,brick.height);
+ctx.restore();
+}
+}
+
+function drawPaddle(){
+ctx.fillStyle=paddle.laserTimer>0?COLORS.danger:COLORS.white;
+ctx.fillRect(paddle.x,paddle.y,paddle.width,paddle.height);
+ctx.fillStyle=COLORS.accent;
+ctx.fillRect(paddle.x+4,paddle.y+3,paddle.width-8,3);
+if(paddle.laserTimer>0){ctx.fillStyle=COLORS.danger;ctx.fillRect(paddle.x,paddle.y-6,6,8);ctx.fillRect(paddle.x+paddle.width-6,paddle.y-6,6,8);}
+}
 function drawBalls(){ctx.fillStyle=COLORS.white;for(const ball of balls){ctx.beginPath();ctx.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);ctx.fill();}}
 function drawLasers(){ctx.fillStyle=COLORS.danger;for(const laser of lasers){ctx.fillRect(laser.x-1,laser.y,3,12);}}
 function drawItems(){for(const item of items){ctx.fillStyle=item.color;ctx.fillRect(item.x,item.y,item.width,item.height);ctx.strokeStyle=COLORS.white;ctx.lineWidth=1;ctx.strokeRect(item.x,item.y,item.width,item.height);}}
-function drawParticles(){for(const particle of particles){ctx.globalAlpha=particle.alpha;ctx.fillStyle=particle.color;ctx.beginPath();ctx.arc(particle.x,particle.y,particle.radius,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}
-function drawHUD(){ctx.fillStyle=COLORS.white;ctx.font="14px 'Courier New'";ctx.textAlign="left";ctx.fillText(`STAGE: ${state.currentStage}`,25,30);ctx.fillText(`SCORE: ${state.score}`,160,30);ctx.fillText("LIVES:",600,30);for(let i=0;i<3;i++){ctx.fillStyle=i<state.lives?COLORS.accent:"#2d3142";ctx.fillRect(660+i*18,18,12,14);}}
-function drawInstructions(){if(!stickyBall||!state.playing)return;ctx.fillStyle="rgba(255,255,255,0.7)";ctx.font="16px 'Courier New'";ctx.textAlign="center";ctx.fillText("クリック / タップでボールを発射",GAME_WIDTH/2,400);ctx.textAlign="left";}
-function draw(){ctx.clearRect(0,0,GAME_WIDTH,GAME_HEIGHT);ctx.save();if(state.screenShake>0){const dx=(Math.random()-0.5)*state.screenShake;const dy=(Math.random()-0.5)*state.screenShake;ctx.translate(dx,dy);}drawBricks();drawPaddle();drawLasers();drawBalls();drawItems();drawParticles();drawHUD();drawInstructions();ctx.restore();requestAnimationFrame(draw);}
+
+function drawParticles(){
+for(const p of particles){
+ctx.save();
+ctx.globalAlpha=p.alpha;
+if(p.isRing){
+ctx.strokeStyle=p.color;
+ctx.lineWidth=2;
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
+ctx.stroke();
+}else{
+ctx.fillStyle=p.color;
+if(p.shape==="rect"){
+ctx.fillRect(p.x-p.radius,p.y-p.radius,p.radius*2,p.radius*2);
+}else{
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
+ctx.fill();
+}
+}
+ctx.restore();
+}
+
+for(const ft of floatingTexts){
+ctx.save();
+ctx.globalAlpha=ft.alpha;
+ctx.fillStyle=ft.color;
+ctx.font="bold 14px 'Courier New'";
+ctx.textAlign="center";
+ctx.fillText(ft.text,ft.x,ft.y);
+ctx.restore();
+}
+}
+
+function drawHUD(){
+ctx.fillStyle=COLORS.white;ctx.font="14px 'Courier New'";ctx.textAlign="left";
+ctx.fillText(`STAGE: ${state.currentStage}`,25,30);
+ctx.fillText(`SCORE: ${state.score}`,150,30);
+if(state.currentStage>=12){
+ctx.fillStyle=COLORS.danger;
+ctx.fillText("⚠️上下制限あり",270,30);
+}
+ctx.fillStyle=COLORS.white;
+ctx.fillText("LIVES:",580,30);
+for(let i=0;i<3;i++){ctx.fillStyle=i<state.lives?COLORS.accent:"#2d3142";ctx.fillRect(640+i*18,18,12,14);}
+
+// 右上のアイテム使用中ステータス表示
+let buffY = 55;
+if(activeBuffs.expand>0){
+drawBuffStatus("EXPAND", activeBuffs.expand, activeBuffs.expandMax, "#00ff00", buffY);
+buffY += 22;
+}
+if(activeBuffs.laser>0){
+drawBuffStatus("LASER", activeBuffs.laser, activeBuffs.laserMax, COLORS.danger, buffY);
+buffY += 22;
+}
+if(balls.length > 1){
+drawBuffStatus(`BALLS x${balls.length}`, 1, 1, COLORS.blue, buffY);
+}
+}
+
+function drawBuffStatus(name, current, max, color, yPos){
+const boxWidth = 110;
+const boxHeight = 16;
+const boxX = GAME_WIDTH - boxWidth - 25;
+ctx.fillStyle = "rgba(26,28,41,0.85)";
+ctx.fillRect(boxX, yPos, boxWidth, boxHeight);
+ctx.strokeStyle = color;
+ctx.lineWidth = 1;
+ctx.strokeRect(boxX, yPos, boxWidth, boxHeight);
+
+if(max > 1){
+const ratio = Math.max(0, Math.min(1, current / max));
+ctx.fillStyle = color;
+ctx.fillRect(boxX, yPos, boxWidth * ratio, boxHeight);
+}
+
+ctx.fillStyle = COLORS.white;
+ctx.font = "10px 'Courier New'";
+ctx.textAlign = "center";
+ctx.fillText(`${name}`, boxX + boxWidth / 2, yPos + 12);
+ctx.textAlign = "left";
+}
+
+function drawInstructions(){
+if(!stickyBall||!state.playing)return;
+ctx.fillStyle="rgba(255,255,255,0.85)";ctx.font="16px 'Courier New'";ctx.textAlign="center";
+if(state.currentStage>=12){
+ctx.fillText("【警告】天井に当たるとペナルティ！クリックで発射",GAME_WIDTH/2,400);
+}else{
+ctx.fillText("クリック / タップでボールを発射",GAME_WIDTH/2,400);
+}
+ctx.textAlign="left";
+}
+
+function draw(){
+ctx.clearRect(0,0,GAME_WIDTH,GAME_HEIGHT);
+ctx.save();
+if(state.screenShake>0){const dx=(Math.random()-0.5)*state.screenShake*1.5;const dy=(Math.random()-0.5)*state.screenShake*1.5;ctx.translate(dx,dy);}
+drawBricks();
+drawPaddle();
+drawLasers();
+drawBalls();
+drawItems();
+drawParticles();
+drawHUD();
+drawInstructions();
+
+// ハート減少時の画面フラッシュ演出
+if(state.flashTimer>0){
+ctx.fillStyle=`rgba(255,74,90,${state.flashTimer * 1.2})`;
+ctx.fillRect(0,0,GAME_WIDTH,GAME_HEIGHT);
+}
+
+if(state.blindTimer>0){
+ctx.fillStyle="rgba(0,0,0,0.85)";
+ctx.fillRect(0,0,GAME_WIDTH,GAME_HEIGHT);
+ctx.fillStyle=COLORS.accent;
+ctx.font="18px 'Courier New'";
+ctx.textAlign="center";
+ctx.fillText("【ブラインド発動中】視界不良！",GAME_WIDTH/2,300);
+ctx.textAlign="left";
+}
+
+ctx.restore();
+requestAnimationFrame(draw);
+}
+
 function gameLoop(timestamp){if(!state.lastTime){state.lastTime=timestamp;}let delta=(timestamp-state.lastTime)/1000;state.lastTime=timestamp;delta=Math.min(delta,0.033);update(delta);requestAnimationFrame(gameLoop);}
+
 window.addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(["arrowleft","arrowright","a","d"," ","escape","p"].includes(key)){event.preventDefault();}if(key==="arrowleft"||key==="a"){input.left=true;input.keyboardActive=true;}if(key==="arrowright"||key==="d"){input.right=true;input.keyboardActive=true;}if(key===" "&&state.playing&&!state.paused&&stickyBall){launchBall();}if(key==="escape"||key==="p"){if(state.playing&&!DOM.resultModal.classList.contains("active")&&!DOM.configModal.classList.contains("active")){setPaused(!state.paused);}}});
 window.addEventListener("keyup",event=>{const key=event.key.toLowerCase();if(key==="arrowleft"||key==="a"){input.left=false;}if(key==="arrowright"||key==="d"){input.right=false;}});
 function updatePointerPosition(event){const rect=DOM.canvas.getBoundingClientRect();const normalizedX=(event.clientX-rect.left)/rect.width;input.pointerX=normalizedX*GAME_WIDTH;input.pointerActive=true;input.keyboardActive=false;}
@@ -193,7 +584,7 @@ $("btn-pause-resume").addEventListener("click",()=>{setPaused(false);});
 $("btn-pause-retire").addEventListener("click",()=>{DOM.pauseModal.classList.remove("active");finishGame(false);});
 DOM.resultAction.addEventListener("click",()=>{DOM.resultModal.classList.remove("active");if(DOM.resultAction.textContent==="もう一度挑戦"){startStage(state.currentStage);}else{startStage(state.currentStage+1);}});
 $("btn-result-home").addEventListener("click",()=>{DOM.resultModal.classList.remove("active");showHomeScreen();});
-$("btn-reset-data").addEventListener("click",()=>{const confirmed=confirm("ゲームデータを初期化してよろしいですか？\n\nすべてのステージ進行状況がリセットされます。");if(!confirmed)return;localStorage.removeItem(SAVE_KEY);state.highScore=0;state.unlockedStage=1;state.clearedCount=0;sound.bgmVolume=0.3;sound.seVolume=0.5;DOM.sliderBgm.value=60;DOM.sliderSe.value=71;DOM.shake.checked=true;updateVolumeLabels();saveGameData();updateHomeHUD();renderStageGrid();});
+$("btn-reset-data").addEventListener("click",()=>{const confirmed=confirm("ゲームデータを初期化してよろしいですか？\n\nすべてのステージ進行状況がリセットされます。");if(!confirmed)return;localStorage.removeItem(SAVE_KEY);state.highScore=0;state.unlockedStage=1;state.clearedCount=0;sound.bgmVolume=0.3;sound.seVolume=0.7;DOM.sliderBgm.value=60;DOM.sliderSe.value=70;DOM.shake.checked=true;updateVolumeLabels();saveGameData();updateHomeHUD();renderStageGrid();});
 DOM.sliderBgm.addEventListener("input",()=>{sound.setBGMVolume(Number(DOM.sliderBgm.value)/100*0.5);DOM.bgmValue.textContent=`${DOM.sliderBgm.value}%`;});
 DOM.sliderSe.addEventListener("input",()=>{sound.setSEVolume(Number(DOM.sliderSe.value)/100*0.7);DOM.seValue.textContent=`${DOM.sliderSe.value}%`;});
 document.addEventListener("touchmove",event=>{if(event.target===DOM.canvas){event.preventDefault();}},{passive:false});
