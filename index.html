@@ -82,7 +82,7 @@
 "use strict";
 const GAME_WIDTH=800;
 const GAME_HEIGHT=600;
-const SAVE_KEY="retro_brick_breaker_save_v3";
+const SAVE_KEY="retro_brick_breaker_save_v4";
 const COLORS={accent:"#00ffcc",white:"#ffffff",danger:"#ff4a5a",pink:"#ff00aa",yellow:"#ffff00",purple:"#aa00ff",blue:"#00bfff",gold:"#ffd700",dark:"#111119"};
 const STAGES={
 1:{name:"NORMAL FIELD",rows:4,cols:9,description:"基本のブロック配置。操作に慣れよう。"},
@@ -94,17 +94,17 @@ const STAGES={
 7:{name:"HARDCORE ZONE",rows:6,cols:9,description:"耐久力の高いブロックが密集するエリア。"},
 8:{name:"SPEED HELL",rows:6,cols:9,description:"スピードアップブロックが大量に潜む難所。"},
 9:{name:"FORTRESS",rows:6,cols:9,description:"幾重にも重なる要塞のようなブロック群。"},
-10:{name:"FINAL CASTLE",rows:6,cols:9,description:"全種類の特殊ブロックが登場する最終関門。"},
-11:{name:"RANDOM HELL",rows:6,cols:9,description:"【ランダム】配置も耐久も毎回変わる狂気のステージ！"},
-12:{name:"CEILING TRAP",rows:5,cols:9,description:"【上下挟み撃ち】上に抜けてもミスになるハードゾーン。"},
-13:{name:"PENALTY LAB",rows:6,cols:9,description:"【ペナルティ】天井に当たるとハートが1個減る危険エリア。"},
-14:{name:"DOUBLE DANGER",rows:6,cols:9,description:"【上下制限】上下どちらも危険な超緊張ステージ。"},
+10:{name:"FINAL CASTLE",rows:6,cols:9,description:"全種類の特殊ブロックが登場する要塞関門。"},
+11:{name:"RANDOM HELL",rows:6,cols:9,description:"【ランダム】配置も耐久も毎回変わるステージ！"},
+12:{name:"OPEN SKY",rows:5,cols:9,description:"【解放】天井を抜けても安心な開放フィールド。"},
+13:{name:"LASER LAB",rows:6,cols:9,description:"【研究所】レーザーとテクニックで崩す実験場。"},
+14:{name:"DIAMOND RING",rows:6,cols:9,description:"【ダイヤ】高得点ゴールドが散りばめられた配置。"},
 15:{name:"VOID CORRIDOR",rows:6,cols:9,description:"【暗闇】ボールが当たると視界が暗くなるブラインド地帯。"},
-16:{name:"GOLDEN RUSH",rows:6,cols:9,description:"【ゴールド】高得点ブロックが並ぶが上下の壁にも注意。"},
-17:{name:"MAZE OF PAIN",rows:6,cols:9,description:"【迷宮】難所が入り組む上下制限ステージ。"},
-18:{name:"TITAN FORT",rows:6,cols:9,description:"【巨壁】高耐久ブロックと上下制限のダブルプレッシャー。"},
-19:{name:"ULTIMATE CEILING",rows:6,cols:9,description:"【極限天井】ミスが許されない上下挟み撃ちの難関。"},
-20:{name:"VOID APOCALYPSE",rows:6,cols:9,description:"【終焉】すべての罠が牙をむく最終試練！"}
+16:{name:"GOLDEN RUSH",rows:6,cols:9,description:"【ゴールド】高得点ブロックが並ぶスペシャル面。"},
+17:{name:"MAZE OF PAIN",rows:6,cols:9,description:"【迷宮】難所が入り組む複雑な立体ゾーン。"},
+18:{name:"TITAN FORT",rows:6,cols:9,description:"【巨壁】高耐久ブロックが隙間なく並ぶ超巨壁。"},
+19:{name:"CRYSTAL TOWER",rows:6,cols:9,description:"【水晶】宝石のように輝く美しき高難度タワー。"},
+20:{name:"VOID APOCALYPSE",rows:6,cols:9,description:"【終焉】すべてのギミックが牙をむく最終試練！"}
 };
 const TOTAL_STAGES=20;
 const $=id=>document.getElementById(id);
@@ -133,7 +133,6 @@ shake:$("chk-shake")
 const ctx=DOM.canvas.getContext("2d");
 const state={highScore:0,unlockedStage:1,clearedCount:0,currentStage:1,score:0,lives:3,playing:false,paused:false,screenShake:0,configSource:"home",lastTime:0,blindTimer:0,flashTimer:0};
 const paddle={x:350,y:550,width:100,baseWidth:100,height:15,speed:500,laserTimer:0,laserMaxTime:0};
-const topPaddle={x:350,y:35,width:100,height:15};
 const activeBuffs={expand:0,expandMax:0,laser:0,laserMax:0};
 let balls=[];
 let bricks=[];
@@ -151,7 +150,7 @@ updateVolumes(){if(!this.ctx)return;const now=this.ctx.currentTime;this.bgmGain.
 setBGMVolume(value){this.bgmVolume=value;this.updateVolumes();}
 setSEVolume(value){this.seVolume=value;this.updateVolumes();}
 tone(frequency,type,duration,isSE=true,pitchSlide=0){this.init();if(!this.ctx)return;try{const oscillator=this.ctx.createOscillator();const gain=this.ctx.createGain();const output=isSE?this.seGain:this.bgmGain;const now=this.ctx.currentTime;oscillator.type=type;oscillator.frequency.setValueAtTime(frequency,now);if(pitchSlide!==0){oscillator.frequency.exponentialRampToValueAtTime(Math.max(20,frequency+pitchSlide),now+duration);}gain.gain.setValueAtTime(1.0,now);gain.gain.exponentialRampToValueAtTime(0.001,now+duration);oscillator.connect(gain);gain.connect(output);oscillator.start(now);oscillator.stop(now+duration);}catch(error){console.warn("Audio error:",error);}}
-playSE(type){this.init();switch(type){case "bounce":this.tone(360,"sine",0.06,true,80);break;case "paddle":this.tone(520,"triangle",0.09,true,150);break;case "break":this.tone(440,"square",0.1,true,-200);setTimeout(()=>{this.tone(880,"sine",0.08,true,0);},30);break;case "break_hard":this.tone(130,"sawtooth",0.2,true,-80);setTimeout(()=>{this.tone(220,"square",0.12,true,-50);},40);setTimeout(()=>{this.tone(350,"triangle",0.1,true,100);},90);break;case "powerup":[400,550,700,950].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"sine",0.12,true,50);},index*60);});break;case "laser":this.tone(960,"sawtooth",0.06,true,-400);break;case "lost_ball":this.tone(180,"sawtooth",0.25,true,-120);setTimeout(()=>{this.tone(100,"square",0.35,true,-80);},80);setTimeout(()=>{this.tone(60,"sawtooth",0.4,true,-40);},160);break;case "penalty":this.tone(140,"sawtooth",0.25,true,-60);setTimeout(()=>{this.tone(90,"sawtooth",0.3,true,-40);},120);break;case "gameover":this.tone(280,"sawtooth",0.3,true,-100);setTimeout(()=>{this.tone(210,"sawtooth",0.3,true,-80);},220);setTimeout(()=>{this.tone(130,"sawtooth",0.6,true,-50);},450);break;case "clear":[523.25,659.25,783.99,1046.5,1318.5].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"triangle",0.2,true,0);},index*100);});break;}}
+playSE(type){this.init();switch(type){case "bounce":this.tone(360,"sine",0.06,true,80);break;case "paddle":this.tone(520,"triangle",0.09,true,150);break;case "break":this.tone(440,"square",0.1,true,-200);setTimeout(()=>{this.tone(880,"sine",0.08,true,0);},30);break;case "break_hard":this.tone(130,"sawtooth",0.2,true,-80);setTimeout(()=>{this.tone(220,"square",0.12,true,-50);},40);setTimeout(()=>{this.tone(350,"triangle",0.1,true,100);},90);break;case "powerup":[400,550,700,950].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"sine",0.12,true,50);},index*60);});break;case "laser":this.tone(960,"sawtooth",0.06,true,-400);break;case "lost_ball":this.tone(180,"sawtooth",0.25,true,-120);setTimeout(()=>{this.tone(100,"square",0.35,true,-80);},80);setTimeout(()=>{this.tone(60,"sawtooth",0.4,true,-40);},160);break;case "gameover":this.tone(280,"sawtooth",0.3,true,-100);setTimeout(()=>{this.tone(210,"sawtooth",0.3,true,-80);},220);setTimeout(()=>{this.tone(130,"sawtooth",0.6,true,-50);},450);break;case "clear":[523.25,659.25,783.99,1046.5,1318.5].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"triangle",0.2,true,0);},index*100);});break;}}
 startBGM(){this.init();if(!this.ctx||this.playingBGM)return;this.playingBGM=true;const melody=[261.63,293.66,329.63,349.23,392.00,349.23,329.63,293.66];this.bgmInterval=setInterval(()=>{if(!this.ctx||this.ctx.state==="suspended")return;const frequency=melody[this.bgmStep%melody.length];this.tone(frequency/2,"square",0.18,false);this.bgmStep++;},250);}
 stopBGM(){if(this.bgmInterval){clearInterval(this.bgmInterval);this.bgmInterval=null;}this.playingBGM=false;}
 }
@@ -167,60 +166,123 @@ function showHomeScreen(){DOM.game.classList.remove("active");DOM.home.classList
 
 function createBrick(stage,row,col){
 let type="normal";let hp=1;let color=COLORS.blue;
-if(stage===11){
-const rand=Math.random();
-if(rand<0.25){type="hardcore";hp=3;color=COLORS.purple;}
-else if(rand<0.5){type="durable";hp=2;color=COLORS.pink;}
-else if(rand<0.7){type="speed";color=COLORS.yellow;}
-else if(rand<0.85){type="normal";hp=1;color=COLORS.blue;}
-else{return null;}
-}else if(stage>=12){
-const mod=(row+col)%5;
-if(stage>=15&&mod===0){type="blind";hp=1;color=COLORS.dark;}
-else if(stage>=16&&mod===1){type="gold";hp=1;color=COLORS.gold;}
-else if(mod===2){type="durable";hp=2;color=COLORS.pink;}
-else if(mod===3){type="hardcore";hp=3;color=COLORS.purple;}
-else if(mod===4){type="speed";color=COLORS.yellow;}
-else{type="normal";hp=1;color=COLORS.blue;}
-}else if(stage===2){
-if(row%2===1){type="durable";hp=2;color=COLORS.pink;}
-else{type="normal";hp=1;color=COLORS.blue;}
-}else if(stage===3){
-if((row+col)%3===0){type="speed";color=COLORS.yellow;}
-else{type="normal";hp=1;color=COLORS.blue;}
-}else if(stage===4){
-if(row<2){type="hardcore";hp=3;color=COLORS.purple;}
-else if(row<4){type="durable";hp=2;color=COLORS.pink;}
-else{type="normal";hp=1;color=COLORS.blue;}
-}else if(stage===5){
-const centerCol=4;const dist=Math.abs(col-centerCol);
-if(row>=dist){
-if(row===0){type="hardcore";hp=3;color=COLORS.purple;}
-else if(row<=2){type="durable";hp=2;color=COLORS.pink;}
-else{type="normal";hp=1;color=COLORS.accent;}
-}else{return null;}
-}else if(stage===6){
-if((row+col)%2===0){type="speed";color=COLORS.yellow;}
-else{type="durable";hp=2;color=COLORS.pink;}
-}else if(stage===7){
-if(row%2===0&&col%2===0){type="hardcore";hp=3;color=COLORS.purple;}
-else{type="durable";hp=2;color=COLORS.pink;}
-}else if(stage===8){
-if(col===2||col===6){type="speed";color=COLORS.yellow;}
-else if(row===0||row===5){type="durable";hp=2;color=COLORS.pink;}
-else{type="normal";hp=1;color=COLORS.blue;}
-}else if(stage===9){
-if(col===0||col===8||row===0){type="hardcore";hp=3;color=COLORS.purple;}
-else if(row===1||row===2){type="durable";hp=2;color=COLORS.pink;}
-else{type="normal";hp=1;color=COLORS.blue;}
-}else if(stage===10){
-const random=Math.random();
-if(random>0.8){type="hardcore";hp=3;color=COLORS.purple;}
-else if(random>0.6){type="durable";hp=2;color=COLORS.pink;}
-else if(random>0.4){type="speed";color=COLORS.yellow;}
-else{type="normal";hp=1;color=COLORS.blue;}
-}else{
-type="normal";hp=1;color=COLORS.blue;
+
+switch(stage){
+case 1:
+  type="normal"; hp=1; color=COLORS.blue;
+  break;
+case 2:
+  type=(row%2===1)?"durable":"normal";
+  hp=(type==="durable")?2:1;
+  color=(type==="durable")?COLORS.pink:COLORS.blue;
+  break;
+case 3:
+  type=((row+col)%3===0)?"speed":"normal";
+  color=(type==="speed")?COLORS.yellow:COLORS.blue;
+  break;
+case 4:
+  if(row===0){type="hardcore";hp=3;color=COLORS.purple;}
+  else if(row===1){type="durable";hp=2;color=COLORS.pink;}
+  else{type="normal";hp=1;color=COLORS.blue;}
+  break;
+case 5:
+  {
+    const centerCol=4;const dist=Math.abs(col-centerCol);
+    if(row>=dist){
+      if(row===0){type="hardcore";hp=3;color=COLORS.purple;}
+      else if(row<=2){type="durable";hp=2;color=COLORS.pink;}
+      else{type="normal";hp=1;color=COLORS.accent;}
+    }else{return null;}
+  }
+  break;
+case 6:
+  type=((row+col)%2===0)?"speed":"durable";
+  hp=(type==="durable")?2:1;
+  color=(type==="durable")?COLORS.pink:COLORS.yellow;
+  break;
+case 7:
+  if(row%2===0&&col%2===0){type="hardcore";hp=3;color=COLORS.purple;}
+  else if(row%2===1){type="durable";hp=2;color=COLORS.pink;}
+  else{type="normal";hp=1;color=COLORS.blue;}
+  break;
+case 8:
+  if(col===2||col===6){type="speed";color=COLORS.yellow;}
+  else if(row===0||row===5){type="durable";hp=2;color=COLORS.pink;}
+  else{type="hardcore";hp=3;color=COLORS.purple;}
+  break;
+case 9:
+  if(col===0||col===4||col===8){type="hardcore";hp=3;color=COLORS.purple;}
+  else if(row%2===0){type="speed";color=COLORS.yellow;}
+  else{type="normal";hp=1;color=COLORS.blue;}
+  break;
+case 10:
+  {
+    const pattern=(row*9+col)%4;
+    if(pattern===0){type="hardcore";hp=3;color=COLORS.purple;}
+    else if(pattern===1){type="durable";hp=2;color=COLORS.pink;}
+    else if(pattern===2){type="speed";color=COLORS.yellow;}
+    else{type="normal";hp=1;color=COLORS.blue;}
+  }
+  break;
+case 11:
+  {
+    const rand=Math.random();
+    if(rand<0.25){type="hardcore";hp=3;color=COLORS.purple;}
+    else if(rand<0.5){type="durable";hp=2;color=COLORS.pink;}
+    else if(rand<0.75){type="speed";color=COLORS.yellow;}
+    else{type="normal";hp=1;color=COLORS.blue;}
+  }
+  break;
+case 12:
+  if(row===0||row===4){type="gold";hp=1;color=COLORS.gold;}
+  else if(col===0||col===8){type="durable";hp=2;color=COLORS.pink;}
+  else{type="normal";hp=1;color=COLORS.blue;}
+  break;
+case 13:
+  if((row+col)%4===0){type="speed";color=COLORS.yellow;}
+  else if(row===2){type="hardcore";hp=3;color=COLORS.purple;}
+  else{type="normal";hp=1;color=COLORS.accent;}
+  break;
+case 14:
+  if(col%2===0){type="gold";hp=1;color=COLORS.gold;}
+  else{type="durable";hp=2;color=COLORS.pink;}
+  break;
+case 15:
+  if((row+col)%5===0){type="blind";hp=1;color=COLORS.dark;}
+  else if(row<3){type="hardcore";hp=3;color=COLORS.purple;}
+  else{type="normal";hp=1;color=COLORS.blue;}
+  break;
+case 16:
+  if(row===2||row===3){type="gold";hp=1;color=COLORS.gold;}
+  else{type="speed";color=COLORS.yellow;}
+  break;
+case 17:
+  if((row*col)%3===0){type="hardcore";hp=3;color=COLORS.purple;}
+  else if((row+col)%2===0){type="durable";hp=2;color=COLORS.pink;}
+  else{type="normal";hp=1;color=COLORS.blue;}
+  break;
+case 18:
+  if(row===0||row===5){type="hardcore";hp=3;color=COLORS.purple;}
+  else if(col===0||col===4||col===8){type="durable";hp=2;color=COLORS.pink;}
+  else{type="gold";hp=1;color=COLORS.gold;}
+  break;
+case 19:
+  if((row+col)%3===0){type="gold";hp=1;color=COLORS.gold;}
+  else if(row%2===0){type="speed";color=COLORS.yellow;}
+  else{type="hardcore";hp=3;color=COLORS.purple;}
+  break;
+case 20:
+  {
+    const v=(row+col)%5;
+    if(v===0){type="hardcore";hp=3;color=COLORS.purple;}
+    else if(v===1){type="gold";hp=1;color=COLORS.gold;}
+    else if(v===2){type="blind";hp=1;color=COLORS.dark;}
+    else if(v===3){type="durable";hp=2;color=COLORS.pink;}
+    else{type="speed";color=COLORS.yellow;}
+  }
+  break;
+default:
+  type="normal";hp=1;color=COLORS.blue;
 }
 
 const width=74;const height=22;const padding=10;const offsetTop=80;const offsetLeft=28;
@@ -228,7 +290,7 @@ return{x:offsetLeft+col*(width+padding),y:offsetTop+row*(height+padding),width,h
 }
 function createLevelBricks(stage){const config=STAGES[stage];const result=[];for(let row=0;row<config.rows;row++){for(let col=0;col<config.cols;col++){const brick=createBrick(stage,row,col);if(brick!==null){result.push(brick);}}}if(result.length===0){result.push(createBrick(1,0,0));}return result;}
 function resetBall(){balls=[{x:400,y:540,vx:4,vy:-5,radius:8,speedMultiplier:1}];stickyBall=true;}
-function startStage(stage){state.currentStage=stage;state.score=0;state.lives=3;state.playing=true;state.paused=false;state.screenShake=0;state.blindTimer=0;state.flashTimer=0;paddle.width=paddle.baseWidth;topPaddle.width=paddle.baseWidth;paddle.laserTimer=0;activeBuffs.expand=0;activeBuffs.laser=0;bricks=createLevelBricks(stage);items=[];particles=[];floatingTexts=[];lasers=[];resetBall();input.left=false;input.right=false;input.keyboardActive=false;showGameScreen();sound.startBGM();}
+function startStage(stage){state.currentStage=stage;state.score=0;state.lives=3;state.playing=true;state.paused=false;state.screenShake=0;state.blindTimer=0;state.flashTimer=0;paddle.width=paddle.baseWidth;paddle.laserTimer=0;activeBuffs.expand=0;activeBuffs.laser=0;bricks=createLevelBricks(stage);items=[];particles=[];floatingTexts=[];lasers=[];resetBall();input.left=false;input.right=false;input.keyboardActive=false;showGameScreen();sound.startBGM();}
 
 function createExplosion(x,y,color,count=16,isHard=false){
 const speedFactor=isHard?9:6;
@@ -268,7 +330,6 @@ addFloatingText(GAME_WIDTH/2,300,"+50 SCORE!",COLORS.accent);
 switch(type){
 case "expand":
 paddle.width=paddle.baseWidth*1.5;
-topPaddle.width=paddle.baseWidth*1.5;
 activeBuffs.expand=8000;
 activeBuffs.expandMax=8000;
 break;
@@ -329,12 +390,9 @@ const scale=GAME_WIDTH/DOM.canvas.clientWidth;
 paddle.x=input.pointerX*scale-paddle.width/2;
 }
 paddle.x=Math.max(0,Math.min(GAME_WIDTH-paddle.width,paddle.x));
-topPaddle.x=paddle.x;
-topPaddle.width=paddle.width;
 }
 
 function updateBalls(delta){
-const hasCeilingPenalty=(state.currentStage>=12);
 for(let i=balls.length-1;i>=0;i--){
 const ball=balls[i];
 if(stickyBall&&i===0)continue;
@@ -356,33 +414,7 @@ if(ball.x-ball.radius<0){ball.x=ball.radius;ball.vx*=-1;sound.playSE("bounce");}
 if(ball.x+ball.radius>GAME_WIDTH){ball.x=GAME_WIDTH-ball.radius;ball.vx*=-1;sound.playSE("bounce");}
 
 if(ball.y-ball.radius<0){
-if(hasCeilingPenalty){
-if(ball.x>topPaddle.x&&ball.x<topPaddle.x+topPaddle.width&&ball.y-ball.radius<=topPaddle.y+topPaddle.height){
-ball.y=topPaddle.y+topPaddle.height+ball.radius;
-const relative=(ball.x-(topPaddle.x+topPaddle.width/2))/(topPaddle.width/2);
-const currentSpeed=Math.sqrt(ball.vx**2+ball.vy**2);
-ball.vx=relative*5.5;
-const vertical=Math.sqrt(Math.max(1,currentSpeed**2-ball.vx**2));
-ball.vy=vertical;
-sound.playSE("paddle");
-}else{
-balls.splice(i,1);
-if(balls.length === 0 && !stickyBall){
-sound.playSE("penalty");
-state.lives--;
-state.flashTimer=0.4;
-createExplosion(ball.x, ball.y, COLORS.danger, 20, true);
-if(DOM.shake.checked)state.screenShake=9;
-addFloatingText(GAME_WIDTH/2,100,"- PENALTY -",COLORS.danger);
-if(state.lives<=0){finishGame(false);return;}
-} else {
-sound.playSE("lost_ball");
-}
-continue;
-}
-}else{
 ball.y=ball.radius;ball.vy*=-1;sound.playSE("bounce");
-}
 }
 
 if(ball.y-ball.radius>GAME_HEIGHT){
@@ -429,10 +461,6 @@ paddle.laserTimer-=delta*1000;
 if(Math.floor(paddle.laserTimer)%300<delta*1000){
 lasers.push({x:paddle.x+10,y:paddle.y,vy:-480});
 lasers.push({x:paddle.x+paddle.width-10,y:paddle.y,vy:-480});
-if(state.currentStage>=12){
-lasers.push({x:topPaddle.x+10,y:topPaddle.y+topPaddle.height,vy:480});
-lasers.push({x:topPaddle.x+topPaddle.width-10,y:topPaddle.y+topPaddle.height,vy:480});
-}
 sound.playSE("laser");
 }
 }
@@ -440,7 +468,6 @@ if(activeBuffs.expand>0){
 activeBuffs.expand-=delta*1000;
 if(activeBuffs.expand<=0){
 paddle.width=paddle.baseWidth;
-topPaddle.width=paddle.baseWidth;
 }
 }
 if(activeBuffs.laser>0){
@@ -496,7 +523,6 @@ updateItems(delta);
 updateParticles(delta);
 if(balls.length===0 && !stickyBall && state.lives>0){
 paddle.width=paddle.baseWidth;
-topPaddle.width=paddle.baseWidth;
 paddle.laserTimer=0;
 activeBuffs.expand=0;
 activeBuffs.laser=0;
@@ -542,14 +568,6 @@ ctx.fillRect(paddle.x,paddle.y,paddle.width,paddle.height);
 ctx.fillStyle=COLORS.accent;
 ctx.fillRect(paddle.x+4,paddle.y+3,paddle.width-8,3);
 if(paddle.laserTimer>0){ctx.fillStyle=COLORS.danger;ctx.fillRect(paddle.x,paddle.y-6,6,8);ctx.fillRect(paddle.x+paddle.width-6,paddle.y-6,6,8);}
-
-if(state.currentStage>=12){
-ctx.fillStyle=paddle.laserTimer>0?COLORS.danger:COLORS.white;
-ctx.fillRect(topPaddle.x,topPaddle.y,topPaddle.width,topPaddle.height);
-ctx.fillStyle=COLORS.accent;
-ctx.fillRect(topPaddle.x+4,topPaddle.y+topPaddle.height-6,topPaddle.width-8,3);
-if(paddle.laserTimer>0){ctx.fillStyle=COLORS.danger;ctx.fillRect(topPaddle.x,topPaddle.y+topPaddle.height-2,6,8);ctx.fillRect(topPaddle.x+topPaddle.width-6,topPaddle.y+topPaddle.height-2,6,8);}
-}
 }
 function drawBalls(){ctx.fillStyle=COLORS.white;for(const ball of balls){ctx.beginPath();ctx.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);ctx.fill();}}
 function drawLasers(){ctx.fillStyle=COLORS.danger;for(const laser of lasers){ctx.fillRect(laser.x-1,laser.y,3,12);}}
@@ -593,10 +611,6 @@ function drawHUD(){
 ctx.fillStyle=COLORS.white;ctx.font="14px 'Courier New'";ctx.textAlign="left";
 ctx.fillText(`STAGE: ${state.currentStage}`,25,30);
 ctx.fillText(`SCORE: ${state.score}`,150,30);
-if(state.currentStage>=12){
-ctx.fillStyle=COLORS.danger;
-ctx.fillText("⚠️上下制限あり（パドル連動）",270,30);
-}
 ctx.fillStyle=COLORS.white;
 ctx.fillText("LIVES:",580,30);
 for(let i=0;i<3;i++){ctx.fillStyle=i<state.lives?COLORS.accent:"#2d3142";ctx.fillRect(640+i*18,18,12,14);}
@@ -641,11 +655,7 @@ ctx.textAlign = "left";
 function drawInstructions(){
 if(!stickyBall||!state.playing)return;
 ctx.fillStyle="rgba(255,255,255,0.85)";ctx.font="16px 'Courier New'";ctx.textAlign="center";
-if(state.currentStage>=12){
-ctx.fillText("【警告】上下両パドルで跳ね返せ！クリックで発射",GAME_WIDTH/2,450);
-}else{
 ctx.fillText("クリック / タップでボールを発射",GAME_WIDTH/2,400);
-}
 ctx.textAlign="left";
 }
 
@@ -705,7 +715,6 @@ $("btn-hud-config").addEventListener("click",()=>{state.configSource="game";setP
 $("btn-home-config").addEventListener("click",()=>{sound.init();state.configSource="home";DOM.configModal.classList.add("active");});
 $("btn-config-close").addEventListener("click",()=>{DOM.configModal.classList.remove("active");saveGameData();if(state.configSource==="game"){setPaused(false);}else{updateHomeHUD();renderStageGrid();}});
 $("btn-pause-resume").addEventListener("click",()=>{setPaused(false);});
-$("btn-pause-retire","click",()=>{DOM.pauseModal.classList.remove("active");finishGame(false);});
 $("btn-pause-retire").addEventListener("click",()=>{DOM.pauseModal.classList.remove("active");finishGame(false);});
 DOM.resultAction.addEventListener("click",()=>{DOM.resultModal.classList.remove("active");if(DOM.resultAction.textContent==="もう一度挑戦"){startStage(state.currentStage);}else{startStage(state.currentStage+1);}});
 $("btn-result-home").addEventListener("click",()=>{DOM.resultModal.classList.remove("active");showHomeScreen();});
@@ -718,7 +727,7 @@ state.highScore=0;
 state.unlockedStage=1;
 state.clearedCount=0;
 sound.bgmVolume=0.5;
-sound.seVolume=0.7;
+sound.seValue=0.7;
 DOM.sliderBgm.value=50;
 DOM.sliderSe.value=70;
 DOM.shake.checked=true;
@@ -737,7 +746,6 @@ sound.setSEVolume(Number(DOM.sliderSe.value)/100);
 DOM.seValue.textContent=`${DOM.sliderSe.value}%`;
 });
 
-document.eline=document.addEventListener("touchmove",event=>{if(event.target===DOM.canvas){event.preventDefault();}},{passive:false});
 window.addEventListener("load",()=>{loadGameData();renderStageGrid();updateVolumeLabels();requestAnimationFrame(gameLoop);});
 </script>
 </body>
