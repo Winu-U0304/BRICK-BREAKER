@@ -366,14 +366,18 @@ const vertical=Math.sqrt(Math.max(1,currentSpeed**2-ball.vx**2));
 ball.vy=vertical;
 sound.playSE("paddle");
 }else{
+balls.splice(i,1);
+if(balls.length === 0 && !stickyBall){
 sound.playSE("penalty");
 state.lives--;
 state.flashTimer=0.4;
 createExplosion(ball.x, ball.y, COLORS.danger, 20, true);
 if(DOM.shake.checked)state.screenShake=9;
 addFloatingText(GAME_WIDTH/2,100,"- PENALTY -",COLORS.danger);
-balls.splice(i,1);
 if(state.lives<=0){finishGame(false);return;}
+} else {
+sound.playSE("lost_ball");
+}
 continue;
 }
 }else{
@@ -382,14 +386,18 @@ ball.y=ball.radius;ball.vy*=-1;sound.playSE("bounce");
 }
 
 if(ball.y-ball.radius>GAME_HEIGHT){
+balls.splice(i,1);
+if(balls.length === 0 && !stickyBall){
 createExplosion(ball.x, GAME_HEIGHT-10, COLORS.danger, 25, true);
 sound.playSE("lost_ball");
 state.lives--;
 state.flashTimer=0.5;
 if(DOM.shake.checked)state.screenShake=9;
 addFloatingText(GAME_WIDTH/2, GAME_HEIGHT - 60, "- LOST LIFE -", COLORS.danger);
-balls.splice(i,1);
 if(state.lives<=0){finishGame(false);return;}
+} else {
+sound.playSE("lost_ball");
+}
 continue;
 }
 
@@ -486,7 +494,7 @@ updateLasers(delta);
 updateBalls(delta);
 updateItems(delta);
 updateParticles(delta);
-if(balls.length===0 && state.lives>0){
+if(balls.length===0 && !stickyBall && state.lives>0){
 paddle.width=paddle.baseWidth;
 topPaddle.width=paddle.baseWidth;
 paddle.laserTimer=0;
@@ -697,6 +705,7 @@ $("btn-hud-config").addEventListener("click",()=>{state.configSource="game";setP
 $("btn-home-config").addEventListener("click",()=>{sound.init();state.configSource="home";DOM.configModal.classList.add("active");});
 $("btn-config-close").addEventListener("click",()=>{DOM.configModal.classList.remove("active");saveGameData();if(state.configSource==="game"){setPaused(false);}else{updateHomeHUD();renderStageGrid();}});
 $("btn-pause-resume").addEventListener("click",()=>{setPaused(false);});
+$("btn-pause-retire","click",()=>{DOM.pauseModal.classList.remove("active");finishGame(false);});
 $("btn-pause-retire").addEventListener("click",()=>{DOM.pauseModal.classList.remove("active");finishGame(false);});
 DOM.resultAction.addEventListener("click",()=>{DOM.resultModal.classList.remove("active");if(DOM.resultAction.textContent==="もう一度挑戦"){startStage(state.currentStage);}else{startStage(state.currentStage+1);}});
 $("btn-result-home").addEventListener("click",()=>{DOM.resultModal.classList.remove("active");showHomeScreen();});
