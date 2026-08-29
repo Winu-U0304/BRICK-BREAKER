@@ -132,7 +132,7 @@ shake:$("chk-shake")
 };
 const ctx=DOM.canvas.getContext("2d");
 const state={highScore:0,unlockedStage:1,clearedCount:0,currentStage:1,score:0,lives:3,playing:false,paused:false,screenShake:0,configSource:"home",lastTime:0,blindTimer:0,flashTimer:0};
-const paddle={x:350,y:550,width:100,baseWidth:100,height:15,laserTimer:0,laserMaxTime:0};
+const paddle={x:350,y:550,width:100,baseWidth:100,height:15,speed:500,laserTimer:0,laserMaxTime:0};
 const activeBuffs={expand:0,expandMax:0,laser:0,laserMax:0};
 let balls=[];
 let bricks=[];
@@ -144,14 +144,13 @@ let stickyBall=true;
 const input={left:false,right:false,pointerActive:false,pointerX:GAME_WIDTH/2,keyboardActive:false};
 
 class SoundEngine{
-constructor(){this.ctx=null;this.bgmGain=null;this.seGain=null;this.bgmInterval=null;this.bgmVolume=0.3;this.seVolume=0.7;this.bgmStep=0;this.playingBGM=false;}
+constructor(){this.ctx=null;this.bgmGain=null;this.seGain=null;this.bgmInterval=null;this.bgmVolume=0.5;this.seVolume=0.7;this.bgmStep=0;this.playingBGM=false;}
 init(){if(!this.ctx){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;this.ctx=new AudioContext();this.bgmGain=this.ctx.createGain();this.seGain=this.ctx.createGain();this.bgmGain.connect(this.ctx.destination);this.seGain.connect(this.ctx.destination);this.updateVolumes();}if(this.ctx.state==="suspended"){this.ctx.resume();}}
-updateVolumes(){if(!this.ctx)return;const now=this.ctx.currentTime;this.bgmGain.gain.setValueAtTime(this.bgmVolume,now);this.seGain.gain.setValueAtTime(this.seVolume,now);}
+updateVolumes(){if(!this.ctx)return;const now=this.ctx.currentTime;this.bgmGain.gain.setValueAtTime(Math.max(0,Math.min(1,this.bgmVolume)),now);this.seGain.gain.setValueAtTime(Math.max(0,Math.min(1,this.seVolume)),now);}
 setBGMVolume(value){this.bgmVolume=value;this.updateVolumes();}
 setSEVolume(value){this.seVolume=value;this.updateVolumes();}
 tone(frequency,type,duration,isSE=true,pitchSlide=0){this.init();if(!this.ctx)return;try{const oscillator=this.ctx.createOscillator();const gain=this.ctx.createGain();const output=isSE?this.seGain:this.bgmGain;const now=this.ctx.currentTime;oscillator.type=type;oscillator.frequency.setValueAtTime(frequency,now);if(pitchSlide!==0){oscillator.frequency.exponentialRampToValueAtTime(Math.max(20,frequency+pitchSlide),now+duration);}gain.gain.setValueAtTime(1.0,now);gain.gain.exponentialRampToValueAtTime(0.001,now+duration);oscillator.connect(gain);gain.connect(output);oscillator.start(now);oscillator.stop(now+duration);}catch(error){console.warn("Audio error:",error);}}
-playSE(type){this.init();switch(type){case "bounce":this.tone(360,"sine",0.06,true,80);break;case "paddle":this.tone(520,"triangle",0.09,true,150);break;case "break":this.tone(440,"square",0.1,true,-200);setTimeout(()=>{this.tone(880,"sine",0.08,true,0);},30);break;case "break_hard":this.tone(130,"sawtooth",0.2,true,-80);setTimeout(()=>{this.tone(220,"square",0.12,true,-50);},40);setTimeout(()=>{this.tone(350,"triangle",0.1,true,100);},90);break;case "powerup":[400,550,700,950].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"sine",0.12,true,50);},index*60);});break;case "laser":this.tone(960,"sawtooth",0.06,true,-400);break;case "lost_ball":// ライフ・ボールロスト時の重厚な破裂＆落下音
-this.tone(180,"sawtooth",0.25,true,-120);setTimeout(()=>{this.tone(100,"square",0.35,true,-80);},80);setTimeout(()=>{this.tone(60,"sawtooth",0.4,true,-40);},160);break;case "penalty":this.tone(140,"sawtooth",0.25,true,-60);setTimeout(()=>{this.tone(90,"sawtooth",0.3,true,-40);},120);break;case "gameover":this.tone(280,"sawtooth",0.3,true,-100);setTimeout(()=>{this.tone(210,"sawtooth",0.3,true,-80);},220);setTimeout(()=>{this.tone(130,"sawtooth",0.6,true,-50);},450);break;case "clear":[523.25,659.25,783.99,1046.5,1318.5].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"triangle",0.2,true,0);},index*100);});break;}}
+playSE(type){this.init();switch(type){case "bounce":this.tone(360,"sine",0.06,true,80);break;case "paddle":this.tone(520,"triangle",0.09,true,150);break;case "break":this.tone(440,"square",0.1,true,-200);setTimeout(()=>{this.tone(880,"sine",0.08,true,0);},30);break;case "break_hard":this.tone(130,"sawtooth",0.2,true,-80);setTimeout(()=>{this.tone(220,"square",0.12,true,-50);},40);setTimeout(()=>{this.tone(350,"triangle",0.1,true,100);},90);break;case "powerup":[400,550,700,950].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"sine",0.12,true,50);},index*60);});break;case "laser":this.tone(960,"sawtooth",0.06,true,-400);break;case "lost_ball":this.tone(180,"sawtooth",0.25,true,-120);setTimeout(()=>{this.tone(100,"square",0.35,true,-80);},80);setTimeout(()=>{this.tone(60,"sawtooth",0.4,true,-40);},160);break;case "penalty":this.tone(140,"sawtooth",0.25,true,-60);setTimeout(()=>{this.tone(90,"sawtooth",0.3,true,-40);},120);break;case "gameover":this.tone(280,"sawtooth",0.3,true,-100);setTimeout(()=>{this.tone(210,"sawtooth",0.3,true,-80);},220);setTimeout(()=>{this.tone(130,"sawtooth",0.6,true,-50);},450);break;case "clear":[523.25,659.25,783.99,1046.5,1318.5].forEach((freq,index)=>{setTimeout(()=>{this.tone(freq,"triangle",0.2,true,0);},index*100);});break;}}
 startBGM(){this.init();if(!this.ctx||this.playingBGM)return;this.playingBGM=true;const melody=[261.63,293.66,329.63,349.23,392.00,349.23,329.63,293.66];this.bgmInterval=setInterval(()=>{if(!this.ctx||this.ctx.state==="suspended")return;const frequency=melody[this.bgmStep%melody.length];this.tone(frequency/2,"square",0.18,false);this.bgmStep++;},250);}
 stopBGM(){if(this.bgmInterval){clearInterval(this.bgmInterval);this.bgmInterval=null;}this.playingBGM=false;}
 }
@@ -222,8 +221,38 @@ function addFloatingText(x,y,text,color=COLORS.accent){
 floatingTexts.push({x,y,text,color,alpha:1,vy:-1.5});
 }
 
-function dropItem(x,y){if(Math.random()>=0.25)return;const types=["expand","multiball","laser"];const type=types[Math.floor(Math.random()*types.length)];const colors={expand:"#00ff00",multiball:COLORS.blue,laser:COLORS.danger};items.push({x:x-8,y,type,color:colors[type],speed:150,width:16,height:16});}
-function applyPowerUp(type){state.score+=50;sound.playSE("powerup");addFloatingText(GAME_WIDTH/2,300,"+50 SCORE!",COLORS.accent);switch(type){case "expand":paddle.width=paddle.baseWidth*1.5;activeBuffs.expand=8000;activeBuffs.expandMax=8000;break;case "multiball":if(balls.length>0){const base=balls[0];balls.push({x:base.x,y:base.y,vx:-base.vx-1,vy:base.vy,radius:8,speedMultiplier:base.speedMultiplier});balls.push({x:base.x,y:base.y,vx:base.vx+1,vy:base.vy*0.9,radius:8,speedMultiplier:base.speedMultiplier});}break;case "laser":paddle.laserTimer=6000;activeBuffs.laser=6000;activeBuffs.laserMax=6000;break;}}
+function dropItem(x,y){
+if(Math.random()>=0.25)return;
+const types=["expand","multiball","laser"];
+const type=types[Math.floor(Math.random()*types.length)];
+const colors={expand:"#00ff00",multiball:COLORS.blue,laser:COLORS.danger};
+items.push({x:x-8,y,type,color:colors[type],speed:150,width:16,height:16});
+}
+
+function applyPowerUp(type){
+state.score+=50;
+sound.playSE("powerup");
+addFloatingText(GAME_WIDTH/2,300,"+50 SCORE!",COLORS.accent);
+switch(type){
+case "expand":
+paddle.width=paddle.baseWidth*1.5;
+activeBuffs.expand=8000;
+activeBuffs.expandMax=8000;
+break;
+case "multiball":
+if(balls.length>0){
+const base=balls[0];
+balls.push({x:base.x,y:base.y,vx:-base.vx-1,vy:base.vy,radius:8,speedMultiplier:base.speedMultiplier});
+balls.push({x:base.x,y:base.y,vx:base.vx+1,vy:base.vy*0.9,radius:8,speedMultiplier:base.speedMultiplier});
+}
+break;
+case "laser":
+paddle.laserTimer=6000;
+activeBuffs.laser=6000;
+activeBuffs.laserMax=6000;
+break;
+}
+}
 
 function damageBrick(brick){
 brick.hp--;
@@ -268,7 +297,6 @@ const multiplier=ball.speedMultiplier;
 ball.x+=ball.vx*multiplier*delta*60;
 ball.y+=ball.vy*multiplier*delta*60;
 
-// ボールの残像（トレイリング）を生成
 particles.push({
 x:ball.x,y:ball.y,
 vx:0,vy:0,
@@ -299,7 +327,6 @@ ball.y=ball.radius;ball.vy*=-1;sound.playSE("bounce");
 }
 
 if(ball.y-ball.radius>GAME_HEIGHT){
-// ボールが下に落ちてロストしたときの派手な演出と音
 createExplosion(ball.x, GAME_HEIGHT-10, COLORS.danger, 25, true);
 sound.playSE("lost_ball");
 state.flashTimer=0.5;
@@ -484,7 +511,6 @@ ctx.fillStyle=COLORS.white;
 ctx.fillText("LIVES:",580,30);
 for(let i=0;i<3;i++){ctx.fillStyle=i<state.lives?COLORS.accent:"#2d3142";ctx.fillRect(640+i*18,18,12,14);}
 
-// 右上のアイテム使用中ステータス表示
 let buffY = 55;
 if(activeBuffs.expand>0){
 drawBuffStatus("EXPAND", activeBuffs.expand, activeBuffs.expandMax, "#00ff00", buffY);
@@ -546,7 +572,6 @@ drawParticles();
 drawHUD();
 drawInstructions();
 
-// ハート減少時の画面フラッシュ演出
 if(state.flashTimer>0){
 ctx.fillStyle=`rgba(255,74,90,${state.flashTimer * 1.2})`;
 ctx.fillRect(0,0,GAME_WIDTH,GAME_HEIGHT);
@@ -563,10 +588,19 @@ ctx.textAlign="left";
 }
 
 ctx.restore();
-requestAnimationFrame(draw);
 }
 
-function gameLoop(timestamp){if(!state.lastTime){state.lastTime=timestamp;}let delta=(timestamp-state.lastTime)/1000;state.lastTime=timestamp;delta=Math.min(delta,0.033);update(delta);requestAnimationFrame(gameLoop);}
+function gameLoop(timestamp){
+if(!state.lastTime){state.lastTime=timestamp;}
+let delta=(timestamp-state.lastTime)/1000;
+state.lastTime=timestamp;
+delta=Math.min(delta,0.033);
+
+update(delta);
+draw();
+
+requestAnimationFrame(gameLoop);
+}
 
 window.addEventListener("keydown",event=>{const key=event.key.toLowerCase();if(["arrowleft","arrowright","a","d"," ","escape","p"].includes(key)){event.preventDefault();}if(key==="arrowleft"||key==="a"){input.left=true;input.keyboardActive=true;}if(key==="arrowright"||key==="d"){input.right=true;input.keyboardActive=true;}if(key===" "&&state.playing&&!state.paused&&stickyBall){launchBall();}if(key==="escape"||key==="p"){if(state.playing&&!DOM.resultModal.classList.contains("active")&&!DOM.configModal.classList.contains("active")){setPaused(!state.paused);}}});
 window.addEventListener("keyup",event=>{const key=event.key.toLowerCase();if(key==="arrowleft"||key==="a"){input.left=false;}if(key==="arrowright"||key==="d"){input.right=false;}});
@@ -584,11 +618,36 @@ $("btn-pause-resume").addEventListener("click",()=>{setPaused(false);});
 $("btn-pause-retire").addEventListener("click",()=>{DOM.pauseModal.classList.remove("active");finishGame(false);});
 DOM.resultAction.addEventListener("click",()=>{DOM.resultModal.classList.remove("active");if(DOM.resultAction.textContent==="もう一度挑戦"){startStage(state.currentStage);}else{startStage(state.currentStage+1);}});
 $("btn-result-home").addEventListener("click",()=>{DOM.resultModal.classList.remove("active");showHomeScreen();});
-$("btn-reset-data").addEventListener("click",()=>{const confirmed=confirm("ゲームデータを初期化してよろしいですか？\n\nすべてのステージ進行状況がリセットされます。");if(!confirmed)return;localStorage.removeItem(SAVE_KEY);state.highScore=0;state.unlockedStage=1;state.clearedCount=0;sound.bgmVolume=0.3;sound.seVolume=0.7;DOM.sliderBgm.value=60;DOM.sliderSe.value=70;DOM.shake.checked=true;updateVolumeLabels();saveGameData();updateHomeHUD();renderStageGrid();});
-DOM.sliderBgm.addEventListener("input",()=>{sound.setBGMVolume(Number(DOM.sliderBgm.value)/100*0.5);DOM.bgmValue.textContent=`${DOM.sliderBgm.value}%`;});
-DOM.sliderSe.addEventListener("input",()=>{sound.setSEVolume(Number(DOM.sliderSe.value)/100*0.7);DOM.seValue.textContent=`${DOM.sliderSe.value}%`;});
+
+$("btn-reset-data").addEventListener("click",()=>{
+const confirmed=confirm("ゲームデータを初期化してよろしいですか？\n\nすべてのステージ進行状況がリセットされます。");
+if(!confirmed)return;
+localStorage.removeItem(SAVE_KEY);
+state.highScore=0;
+state.unlockedStage=1;
+state.clearedCount=0;
+sound.bgmVolume=0.5;
+sound.seVolume=0.7;
+DOM.sliderBgm.value=50;
+DOM.sliderSe.value=70;
+DOM.shake.checked=true;
+updateVolumeLabels();
+saveGameData();
+updateHomeHUD();
+renderStageGrid();
+});
+
+DOM.sliderBgm.addEventListener("input",()=>{
+sound.setBGMVolume(Number(DOM.sliderBgm.value)/100);
+DOM.bgmValue.textContent=`${DOM.sliderBgm.value}%`;
+});
+DOM.sliderSe.addEventListener("input",()=>{
+sound.setSEVolume(Number(DOM.sliderSe.value)/100);
+DOM.seValue.textContent=`${DOM.sliderSe.value}%`;
+});
+
 document.addEventListener("touchmove",event=>{if(event.target===DOM.canvas){event.preventDefault();}},{passive:false});
-window.addEventListener("load",()=>{loadGameData();renderStageGrid();updateVolumeLabels();requestAnimationFrame(gameLoop);requestAnimationFrame(draw);});
+window.addEventListener("load",()=>{loadGameData();renderStageGrid();updateVolumeLabels();requestAnimationFrame(gameLoop);});
 </script>
 </body>
 </html>
