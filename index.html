@@ -29,6 +29,7 @@
   box-shadow: 0 0 15px rgba(0,255,204,0.4);
   backdrop-filter: blur(4px);
   cursor: pointer;
+  touch-action: none;
 }
 #btn-launch-mobile:active {
   background: var(--accent-color);
@@ -189,7 +190,7 @@
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
 const SAVE_KEY = "retro_brick_breaker_save_v5";
-const COLORS = { accent: "#00ffcc", white: "#ffffff", danger: "#ff4a5a", pink: "#ff00aa", yellow: "#ffff00", purple: "#aa00ff", blue: "#00bfff", gold: "#ffd700", dark: "#111119" };
+const COLORS = { accent: "#00ffcc", white: "#ffffff", danger: "#ff4a5a", pink: "#ff00aa", yellow: "#ffff00", purple: "#aa00ff", blue: "#00bfff", gold: "#ffd700", dark: "#2a1b4e" };
 
 const STAGES = {
   1: { name: "NORMAL FIELD", rows: 4, cols: 9, description: "基本のブロック配置。操作に慣れよう。" },
@@ -241,8 +242,8 @@ const DOM = {
 
 const ctx = DOM.canvas.getContext("2d");
 const state = { highScore: 0, unlockedStage: 1, clearedCount: 0, currentStage: 1, score: 0, lives: 3, playing: false, paused: false, screenShake: 0, configSource: "home", lastTime: 0, blindTimer: 0, flashTimer: 0 };
-const paddle = { x: 350, y: 550, width: 100, baseWidth: 100, height: 15, speed: 600, laserTimer: 0 };
-const activeBuffs = { expand: 0, expandMax: 0, laser: 0, laserMax: 0 };
+const paddle = { x: 350, y: 550, width: 100, baseWidth: 100, height: 15, speed: 600, laserTimer: 0, laserShotTimer: 0 };
+const activeBuffs = { expand: 0, laser: 0 };
 let balls = [];
 let bricks = [];
 let items = [];
@@ -332,6 +333,8 @@ class SoundEngine {
   startBGM() {
     this.init();
     if (!this.ctx || this.playingBGM) return;
+    this.playingBGM = true;
+    this.stopBGM(); // 重複登録の防止
     this.playingBGM = true;
     const melody = [261.63, 293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 293.66];
     this.bgmInterval = setInterval(() => {
@@ -542,6 +545,7 @@ function startStage(stage) {
   state.flashTimer = 0;
   paddle.width = paddle.baseWidth;
   paddle.laserTimer = 0;
+  paddle.laserShotTimer = 0;
   activeBuffs.expand = 0;
   activeBuffs.laser = 0;
   bricks = createLevelBricks(stage);
@@ -596,7 +600,6 @@ function applyPowerUp(type) {
     case "expand":
       paddle.width = paddle.baseWidth * 1.5;
       activeBuffs.expand = 8000;
-      activeBuffs.expandMax = 8000;
       break;
     case "multiball":
       if (balls.length > 0) {
@@ -607,8 +610,8 @@ function applyPowerUp(type) {
       break;
     case "laser":
       paddle.laserTimer = 6000;
+      paddle.laserShotTimer = 0;
       activeBuffs.laser = 6000;
-      activeBuffs.laserMax = 6000;
       break;
   }
 }
@@ -682,17 +685,17 @@ function updateBalls(delta) {
     if (ball.y - ball.radius < 0) { ball.y = ball.radius; ball.vy *= -1; sound.playSE("bounce"); }
 
     if (ball.y - ball.radius > GAME_HEIGHT) {
+      const lastX = ball.x;
       balls.splice(i, 1);
+      sound.playSE("lost_ball");
+      
       if (balls.length === 0 && !stickyBall) {
-        createExplosion(ball.x, GAME_HEIGHT - 10, COLORS.danger, 25, true);
-        sound.playSE("lost_ball");
+        createExplosion(lastX, GAME_HEIGHT - 10, COLORS.danger, 25, true);
         state.lives--;
         state.flashTimer = 0.5;
         if (DOM.shake.checked) state.screenShake = 9;
         addFloatingText(GAME_WIDTH / 2, GAME_HEIGHT - 60, "- LOST LIFE -", COLORS.danger);
         if (state.lives <= 0) { finishGame(false); return; }
-      } else {
-        sound.playSE("lost_ball");
       }
       continue;
     }
@@ -720,10 +723,13 @@ function updateBalls(delta) {
   }
 }
 
+/* 修正：レーザー発射のタイマー判定を安定化 */
 function updateLasers(delta) {
   if (paddle.laserTimer > 0) {
     paddle.laserTimer -= delta * 1000;
-    if (Math.floor(paddle.laserTimer) % 300 < delta * 1000) {
+    paddle.laserShotTimer -= delta * 1000;
+    if (paddle.laserShotTimer <= 0) {
+      paddle.laserShotTimer = 250; // 250ms間隔で発射
       lasers.push({ x: paddle.x + 10, y: paddle.y, vy: -480 });
       lasers.push({ x: paddle.x + paddle.width - 10, y: paddle.y, vy: -480 });
       sound.playSE("laser");
@@ -955,11 +961,11 @@ function drawHUD() {
 
   let buffY = 55;
   if (activeBuffs.expand > 0) {
-    drawBuffStatus("EXPAND", activeBuffs.expand, activeBuffs.expandMax, "#00ff00", buffY);
+    drawBuffStatus("EXPAND", activeBuffs.expand, 8000, "#00ff00", buffY);
     buffY += 22;
   }
   if (activeBuffs.laser > 0) {
-    drawBuffStatus("LASER", activeBuffs.laser, activeBuffs.laserMax, COLORS.danger, buffY);
+    drawBuffStatus("LASER", activeBuffs.laser, 6000, COLORS.danger, buffY);
     buffY += 22;
   }
   if (balls.length > 1) {
@@ -1095,20 +1101,28 @@ function updatePointerPosition(event) {
   input.keyboardActive = false;
 }
 
+/* 修正：キャンバスタップ/クリックでボールを発射可能にする */
 DOM.canvas.addEventListener("pointerdown", event => {
   event.preventDefault();
   updatePointerPosition(event);
+  if (state.playing && !state.paused && stickyBall) {
+    launchBall();
+  }
   try { DOM.canvas.setPointerCapture(event.pointerId); } catch (_) {}
 });
+
+/* 変更点：マウスホバー（カーソル移動）だけでパドルが常に追従するよう修正 */
 DOM.canvas.addEventListener("pointermove", event => {
   event.preventDefault();
-  if (input.pointerActive) updatePointerPosition(event);
+  updatePointerPosition(event); 
 });
+
 DOM.canvas.addEventListener("pointerup", event => {
   event.preventDefault();
-  input.pointerActive = false;
 });
-DOM.canvas.addEventListener("pointercancel", () => { input.pointerActive = false; });
+
+DOM.canvas.addEventListener("pointercancel", () => { 
+});
 
 function launchBall() {
   if (!state.playing || state.paused || !stickyBall) return;
@@ -1118,25 +1132,34 @@ function launchBall() {
 }
 
 $("btn-launch-mobile").addEventListener("pointerdown", event => {
-  event.stopPropagation(); // 発射ボタンタップ時にキャンバスへイベントが伝わってパドルがワープするのを防ぐ
+  event.preventDefault();
+  event.stopPropagation();
   if (state.playing && !state.paused && stickyBall) {
     launchBall();
   }
 });
 
 $("btn-hud-pause").addEventListener("click", () => { setPaused(!state.paused); });
-$("btn-hud-config").addEventListener("click", () => { state.configSource = "game"; setPaused(true); DOM.pauseModal.classList.remove("active"); DOM.configModal.classList.add("active"); });
+$("btn-hud-config").addEventListener("click", () => { 
+  state.configSource = "game"; 
+  setPaused(true); 
+  DOM.pauseModal.classList.remove("active"); 
+  DOM.configModal.classList.add("active"); 
+});
 $("btn-home-config").addEventListener("click", () => { sound.init(); state.configSource = "home"; DOM.configModal.classList.add("active"); });
+
+/* 修正：設定画面閉じるボタンがゲームポーズを維持するように調整 */
 $("btn-config-close").addEventListener("click", () => {
   DOM.configModal.classList.remove("active");
   saveGameData();
   if (state.configSource === "game") {
-    setPaused(false); // ゲーム中の設定画面を閉じたときに確実かつ安全にポーズを解除する
+    DOM.pauseModal.classList.add("active"); // ポーズ画面に戻す
   } else {
     updateHomeHUD();
     renderStageGrid();
   }
 });
+
 $("btn-pause-resume").addEventListener("click", () => { setPaused(false); });
 $("btn-pause-retire").addEventListener("click", () => { DOM.pauseModal.classList.remove("active"); finishGame(false); });
 DOM.resultAction.addEventListener("click", () => {
