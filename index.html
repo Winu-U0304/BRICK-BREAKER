@@ -15,18 +15,18 @@
   right: 20px;
   width: 76px;
   height: 76px;
-  background: rgba(0, 255, 204, 0.2);
+  background: rgba(0, 255, 204, 0.25);
   border: 2px solid var(--accent-color);
   color: var(--accent-color);
   border-radius: 50%;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: bold;
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 25;
-  box-shadow: 0 0 15px rgba(0,255,204,0.3);
+  box-shadow: 0 0 15px rgba(0,255,204,0.4);
   backdrop-filter: blur(4px);
   cursor: pointer;
 }
@@ -654,8 +654,7 @@ function updatePaddle(delta) {
     if (input.left) paddle.x -= paddle.speed * delta;
     if (input.right) paddle.x += paddle.speed * delta;
   } else if (input.pointerActive) {
-    const scale = GAME_WIDTH / DOM.canvas.clientWidth;
-    paddle.x = input.pointerX * scale - paddle.width / 2;
+    paddle.x = input.pointerX - paddle.width / 2;
   }
   paddle.x = Math.max(0, Math.min(GAME_WIDTH - paddle.width, paddle.x));
 }
@@ -1088,9 +1087,13 @@ window.addEventListener("keyup", event => {
 
 function updatePointerPosition(event) {
   const rect = DOM.canvas.getBoundingClientRect();
-  let x = event.clientX - rect.left;
-  x = Math.max(0, Math.min(rect.width, x));
-  input.pointerX = (x / rect.width) * GAME_WIDTH;
+  // ズレを防止するため、キャンバスの実際の描画ピクセル比（スケール）を正しく計算してマッピング
+  const scaleX = GAME_WIDTH / rect.width;
+  let x = (event.clientX - rect.left) * scaleX;
+  
+  // キャンバスの内部解像度範囲内に正確にクランプ
+  x = Math.max(0, Math.min(GAME_WIDTH, x));
+  input.pointerX = x;
   input.pointerActive = true;
   input.keyboardActive = false;
 }
