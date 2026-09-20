@@ -250,6 +250,7 @@ let items = [];
 let particles = [];
 let floatingTexts = [];
 let lasers = [];
+let ripples = []; // 水面のような波紋エフェクト用配列
 let stickyBall = true;
 const input = { left: false, right: false, pointerActive: false, pointerX: GAME_WIDTH / 2, keyboardActive: false };
 
@@ -334,7 +335,7 @@ class SoundEngine {
     this.init();
     if (!this.ctx || this.playingBGM) return;
     this.playingBGM = true;
-    this.stopBGM(); // 重複登録の防止
+    this.stopBGM();
     this.playingBGM = true;
     const melody = [261.63, 293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 293.66];
     this.bgmInterval = setInterval(() => {
@@ -553,6 +554,7 @@ function startStage(stage) {
   particles = [];
   floatingTexts = [];
   lasers = [];
+  ripples = [];
   resetBall();
   input.left = false;
   input.right = false;
@@ -653,7 +655,7 @@ function damageBrick(brick) {
 function allBricksDestroyed() { return !bricks.some(brick => brick.alive); }
 
 function updatePaddle(delta) {
-  if (input.keyboardActive) {
+  if (input.keyboardActive || input.left || input.right) {
     if (input.left) paddle.x -= paddle.speed * delta;
     if (input.right) paddle.x += paddle.speed * delta;
   } else if (input.pointerActive) {
@@ -723,13 +725,12 @@ function updateBalls(delta) {
   }
 }
 
-/* 修正：レーザー発射のタイマー判定を安定化 */
 function updateLasers(delta) {
   if (paddle.laserTimer > 0) {
     paddle.laserTimer -= delta * 1000;
     paddle.laserShotTimer -= delta * 1000;
     if (paddle.laserShotTimer <= 0) {
-      paddle.laserShotTimer = 250; // 250ms間隔で発射
+      paddle.laserShotTimer = 250;
       lasers.push({ x: paddle.x + 10, y: paddle.y, vy: -480 });
       lasers.push({ x: paddle.x + paddle.width - 10, y: paddle.y, vy: -480 });
       sound.playSE("laser");
@@ -777,6 +778,15 @@ function updateParticles(delta) {
     ft.y += ft.vy * delta * 60;
     ft.alpha -= 0.02 * delta * 60;
     if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+  }
+  // 水面波紋（リップル）アニメーションの更新
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const r = ripples[i];
+    r.radius += r.speed * delta * 60;
+    r.alpha -= r.decay * delta * 60;
+    if (r.alpha <= 0 || r.radius > r.maxRadius) {
+      ripples.splice(i, 1);
+    }
   }
   for (const brick of bricks) {
     if (brick.hitAnim > 0) brick.hitAnim -= delta * 5;
@@ -945,6 +955,24 @@ function drawParticles() {
     ctx.fillText(ft.text, ft.x, ft.y);
     ctx.restore();
   }
+
+  // 水面波紋（リップル）の描画（複数の同心円が滑らかに広がる演出）
+  for (const r of ripples) {
+    ctx.save();
+    ctx.globalAlpha = r.alpha;
+    ctx.strokeStyle = COLORS.accent;
+    ctx.lineWidth = 1.5;
+    // 重ね合わせた同心円（波紋のゆらぎ）
+    for (let j = 0; j < 2; j++) {
+      const currentRadius = Math.max(0, r.radius - j * 8);
+      if (currentRadius > 0) {
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, currentRadius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
 }
 
 function drawHUD() {
@@ -1101,27 +1129,61 @@ function updatePointerPosition(event) {
   input.keyboardActive = false;
 }
 
-/* 修正：キャンバスタップ/クリックでボールを発射可能にする */
-DOM.canvas.addEventListener("pointerdown", event => {
-  event.preventDefault();
-  updatePointerPosition(event);
-  if (state.playing && !state.paused && stickyBall) {
-    launchBall();
+// 枠外やキャンバス全体をタップした際のリップル（水面エフェクト）および枠外パドル移動の処理
+window.addEventListener("pointerdown", event => {
+  const rect = DOM.canvas.getBoundingClientRect();
+  
+  // キャンバスの内部・外部を判定
+  const isInsideCanvas = event.clientX >= rect.left && event.clientX <= rect.right &&
+                         event.clientY >= rect.top && event.clientY <= rect.bottom;
+
+  if (isInsideCanvas) {
+    updatePointerPosition(event);
+    if (state.playing && !state.paused && stickyBall) {
+      launchBall();
+    }
+  } else {
+    // 枠外がタップされた場合：水面に手を突っ込んだような波紋エフェクトを発生
+    const canvasX = (event.clientX - rect.left) * (GAME_WIDTH / rect.width);
+    const canvasY = (event.clientY - rect.top) * (GAME_HEIGHT / rect.height);
+    
+    ripples.push({
+      x: canvasX,
+      y: canvasY,
+      radius: 5,
+      maxRadius: 120,
+      speed: 3.5,
+      alpha: 0.9,
+      decay: 0.025
+    });
+
+    // 枠外の右側 / 左側の判定によるパドル移動
+    const screenCenterX = rect.left + rect.width / 2;
+    if (event.clientX > screenCenterX) {
+      input.right = true;
+      input.left = false;
+    } else {
+      input.left = true;
+      input.right = false;
+    }
+    input.pointerActive = false;
   }
-  try { DOM.canvas.setPointerCapture(event.pointerId); } catch (_) {}
 });
 
-/* 変更点：マウスホバー（カーソル移動）だけでパドルが常に追従するよう修正 */
+window.addEventListener("pointerup", event => {
+  // 枠外タッチが離されたら左右移動を停止
+  const rect = DOM.canvas.getBoundingClientRect();
+  const isInsideCanvas = event.clientX >= rect.left && event.clientX <= rect.right &&
+                         event.clientY >= rect.top && event.clientY <= rect.bottom;
+  if (!isInsideCanvas) {
+    input.left = false;
+    input.right = false;
+  }
+});
+
 DOM.canvas.addEventListener("pointermove", event => {
   event.preventDefault();
   updatePointerPosition(event); 
-});
-
-DOM.canvas.addEventListener("pointerup", event => {
-  event.preventDefault();
-});
-
-DOM.canvas.addEventListener("pointercancel", () => { 
 });
 
 function launchBall() {
@@ -1148,12 +1210,11 @@ $("btn-hud-config").addEventListener("click", () => {
 });
 $("btn-home-config").addEventListener("click", () => { sound.init(); state.configSource = "home"; DOM.configModal.classList.add("active"); });
 
-/* 修正：設定画面閉じるボタンがゲームポーズを維持するように調整 */
 $("btn-config-close").addEventListener("click", () => {
   DOM.configModal.classList.remove("active");
   saveGameData();
   if (state.configSource === "game") {
-    DOM.pauseModal.classList.add("active"); // ポーズ画面に戻す
+    DOM.pauseModal.classList.add("active");
   } else {
     updateHomeHUD();
     renderStageGrid();
