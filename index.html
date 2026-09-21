@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -7,6 +8,16 @@
 <title>Retro Brick Breaker - Ultimate Edition</title>
 <style>
 :root{--bg-color:#0d0e15;--panel-color:#1a1c29;--accent-color:#00ffcc;--text-color:#ffffff;--text-muted:#8892b0;--primary-btn:#00ffcc;--danger-btn:#ff4a5a;--border-color:#2d3142;}*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}html,body{width:100%;height:100%;overflow:hidden;background:var(--bg-color);touch-action:none;-webkit-touch-callout:none;}body{color:var(--text-color);font-family:"Courier New",Courier,monospace,"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:center;position:fixed;inset:0;}#game-container{position:relative;width:800px;height:600px;background:#000;border:4px solid #333;box-shadow:0 0 30px rgba(0,255,204,0.1);overflow:hidden;touch-action:none;flex-shrink:0;}.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:30px;background:var(--bg-color);z-index:10;}.screen.active{display:flex;}#home-screen{display:grid;grid-template-columns:240px 1fr;gap:20px;}.sidebar{background:var(--panel-color);border:2px solid var(--border-color);border-radius:8px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;}.main-panel{display:flex;flex-direction:column;gap:20px;overflow-y:auto;}.game-title{color:var(--accent-color);font-size:24px;font-weight:bold;line-height:1.1;letter-spacing:2px;text-align:center;text-shadow:0 0 10px rgba(0,255,204,0.5);margin-bottom:20px;}.stats-group{margin-bottom:20px;}.stats-title{color:var(--text-muted);font-size:12px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border-color);}.stat-item{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;}.stat-val{color:var(--accent-color);font-weight:bold;}.sidebar-btn{background:transparent;border:2px solid var(--border-color);color:var(--text-color);padding:10px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:bold;transition:0.2s;}.sidebar-btn:hover{border-color:var(--accent-color);color:var(--accent-color);box-shadow:0 0 10px rgba(0,255,204,0.2);}.stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;}.stage-card{position:relative;min-height:120px;padding:12px;background:var(--panel-color);border:2px solid var(--border-color);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;}.stage-card:hover:not(.locked){border-color:var(--accent-color);transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,255,204,0.15);}.stage-card.locked{opacity:0.4;cursor:not-allowed;background:#11121a;}.stage-num{font-size:24px;font-weight:bold;margin-bottom:3px;}.stage-name{color:var(--text-muted);font-size:11px;text-align:center;}.stage-description{color:var(--text-muted);font-size:9px;line-height:1.2;text-align:center;margin-top:6px;}.stage-badge{position:absolute;top:6px;right:6px;color:var(--text-color);background:var(--border-color);font-size:9px;padding:2px 5px;border-radius:4px;}.stage-card.cleared .stage-badge{color:#000;background:#ffd700;font-weight:bold;}#game-screen{padding:0;background:transparent;}#gameCanvas{display:block;width:100%;height:100%;background:#05050a;touch-action:none;}.hud-overlay{position:absolute;top:15px;right:15px;display:none;gap:10px;z-index:20;}.hud-btn{width:36px;height:36px;background:rgba(26,28,41,0.85);border:1px solid var(--border-color);border-radius:6px;color:var(--text-color);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}.hud-btn:hover{color:var(--accent-color);border-color:var(--accent-color);}.modal-layer{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(13,14,21,0.85);backdrop-filter:blur(4px);}.modal-layer.active{display:flex;}.modal-content{width:360px;max-width:calc(100% - 30px);padding:30px;display:flex;flex-direction:column;gap:20px;background:var(--panel-color);border:2px solid var(--border-color);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.5);}.modal-title{color:var(--accent-color);font-size:22px;font-weight:bold;text-align:center;letter-spacing:1px;}.msg-text{color:var(--text-color);font-size:14px;line-height:1.5;text-align:center;}.highlight{color:var(--accent-color);font-weight:bold;}.config-row{display:flex;flex-direction:column;gap:8px;}.config-label{display:flex;justify-content:space-between;color:var(--text-muted);font-size:13px;}.config-row input[type="range"]{width:100%;height:6px;appearance:none;background:var(--border-color);border-radius:3px;outline:none;}.config-row input[type="range"]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;background:var(--accent-color);border-radius:50%;cursor:pointer;box-shadow:0 0 8px var(--accent-color);}.toggle-container{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}input[type="checkbox"]{display:none;}.checkbox-custom{position:relative;width:40px;height:20px;background:var(--border-color);border-radius:10px;transition:0.2s;}.checkbox-custom::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:0.2s;}input[type="checkbox"]:checked + .checkbox-custom{background:var(--accent-color);}input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20px);}.menu-btn{background:transparent;border:2px solid var(--primary-btn);color:var(--primary-btn);padding:12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:bold;text-align:center;text-transform:uppercase;transition:0.2s;}.menu-btn:hover{background:var(--primary-btn);color:#000;box-shadow:0 0 15px rgba(0,255,204,0.4);}.menu-btn.danger{border-color:var(--danger-btn);color:var(--danger-btn);}.menu-btn.danger:hover{background:var(--danger-btn);color:#fff;box-shadow:0 0 15px rgba(255,74,90,0.4);}
+
+/* 画面全体に波紋を表示するためのオーバーレイCanvas（枠の外も含む） */
+#rippleCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9000;
+}
 
 /* スマホ用発射ボタン */
 #btn-launch-mobile {
@@ -185,12 +196,19 @@
 </div>
 </div>
 
+<!-- 画面全体（枠の外も含む）に波紋を描画するCanvas -->
+<canvas id="rippleCanvas"></canvas>
+
 <script>
 "use strict";
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
 const SAVE_KEY = "retro_brick_breaker_save_v5";
 const COLORS = { accent: "#00ffcc", white: "#ffffff", danger: "#ff4a5a", pink: "#ff00aa", yellow: "#ffff00", purple: "#aa00ff", blue: "#00bfff", gold: "#ffd700", dark: "#2a1b4e" };
+
+// 波紋の設定
+const RIPPLE_ON_CANVAS_TAP = false; // true にすると枠の内側をタップしたときも波紋が出ます
+const RIPPLE_MAX_RADIUS = 160;
 
 const STAGES = {
   1: { name: "NORMAL FIELD", rows: 4, cols: 9, description: "基本のブロック配置。操作に慣れよう。" },
@@ -220,6 +238,7 @@ const $ = id => document.getElementById(id);
 const DOM = {
   container: $("game-container"),
   canvas: $("gameCanvas"),
+  rippleCanvas: $("rippleCanvas"),
   home: $("home-screen"),
   game: $("game-screen"),
   hud: $("hud-overlay"),
@@ -241,6 +260,7 @@ const DOM = {
 };
 
 const ctx = DOM.canvas.getContext("2d");
+const rippleCtx = DOM.rippleCanvas.getContext("2d");
 const state = { highScore: 0, unlockedStage: 1, clearedCount: 0, currentStage: 1, score: 0, lives: 3, playing: false, paused: false, screenShake: 0, configSource: "home", lastTime: 0, blindTimer: 0, flashTimer: 0 };
 const paddle = { x: 350, y: 550, width: 100, baseWidth: 100, height: 15, speed: 600, laserTimer: 0, laserShotTimer: 0 };
 const activeBuffs = { expand: 0, laser: 0 };
@@ -250,7 +270,7 @@ let items = [];
 let particles = [];
 let floatingTexts = [];
 let lasers = [];
-let ripples = []; // 水面のような波紋エフェクト用配列
+let ripples = []; // 画面全体用の波紋（座標はブラウザ画面基準のピクセル）
 let stickyBall = true;
 const input = { left: false, right: false, pointerActive: false, pointerX: GAME_WIDTH / 2, keyboardActive: false };
 
@@ -554,7 +574,6 @@ function startStage(stage) {
   particles = [];
   floatingTexts = [];
   lasers = [];
-  ripples = [];
   resetBall();
   input.left = false;
   input.right = false;
@@ -779,7 +798,34 @@ function updateParticles(delta) {
     ft.alpha -= 0.02 * delta * 60;
     if (ft.alpha <= 0) floatingTexts.splice(i, 1);
   }
-  // 水面波紋（リップル）アニメーションの更新
+  for (const brick of bricks) {
+    if (brick.hitAnim > 0) brick.hitAnim -= delta * 5;
+  }
+}
+
+// ===== 画面全体の波紋（ゲーム状態に関係なく常に更新・描画） =====
+function resizeRippleCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  DOM.rippleCanvas.width = Math.round(w * dpr);
+  DOM.rippleCanvas.height = Math.round(h * dpr);
+  rippleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function spawnRipple(clientX, clientY) {
+  ripples.push({
+    x: clientX,
+    y: clientY,
+    radius: 5,
+    maxRadius: RIPPLE_MAX_RADIUS,
+    speed: 3.5,
+    alpha: 0.9,
+    decay: 0.025
+  });
+}
+
+function updateRipples(delta) {
   for (let i = ripples.length - 1; i >= 0; i--) {
     const r = ripples[i];
     r.radius += r.speed * delta * 60;
@@ -788,8 +834,25 @@ function updateParticles(delta) {
       ripples.splice(i, 1);
     }
   }
-  for (const brick of bricks) {
-    if (brick.hitAnim > 0) brick.hitAnim -= delta * 5;
+}
+
+function drawRipples() {
+  rippleCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  for (const r of ripples) {
+    rippleCtx.save();
+    rippleCtx.globalAlpha = Math.max(0, r.alpha);
+    rippleCtx.strokeStyle = COLORS.accent;
+    rippleCtx.lineWidth = 1.5;
+    // 重ね合わせた同心円（波紋のゆらぎ）
+    for (let j = 0; j < 3; j++) {
+      const currentRadius = Math.max(0, r.radius - j * 10);
+      if (currentRadius > 0) {
+        rippleCtx.beginPath();
+        rippleCtx.arc(r.x, r.y, currentRadius, 0, Math.PI * 2);
+        rippleCtx.stroke();
+      }
+    }
+    rippleCtx.restore();
   }
 }
 
@@ -955,24 +1018,6 @@ function drawParticles() {
     ctx.fillText(ft.text, ft.x, ft.y);
     ctx.restore();
   }
-
-  // 水面波紋（リップル）の描画（複数の同心円が滑らかに広がる演出）
-  for (const r of ripples) {
-    ctx.save();
-    ctx.globalAlpha = r.alpha;
-    ctx.strokeStyle = COLORS.accent;
-    ctx.lineWidth = 1.5;
-    // 重ね合わせた同心円（波紋のゆらぎ）
-    for (let j = 0; j < 2; j++) {
-      const currentRadius = Math.max(0, r.radius - j * 8);
-      if (currentRadius > 0) {
-        ctx.beginPath();
-        ctx.arc(r.x, r.y, currentRadius, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
 }
 
 function drawHUD() {
@@ -1080,6 +1125,11 @@ function gameLoop(timestamp) {
 
   update(delta);
   draw();
+
+  // 波紋はゲームの状態（ポーズ中・ホーム画面など）に関係なく常に動かす
+  updateRipples(delta);
+  drawRipples();
+
   requestAnimationFrame(gameLoop);
 }
 
@@ -1092,9 +1142,13 @@ function checkOrientation() {
   }
 }
 
-window.addEventListener("resize", checkOrientation);
+window.addEventListener("resize", () => {
+  checkOrientation();
+  resizeRippleCanvas();
+});
 window.addEventListener("load", () => {
   checkOrientation();
+  resizeRippleCanvas();
   loadGameData();
   renderStageGrid();
   updateVolumeLabels();
@@ -1129,33 +1183,24 @@ function updatePointerPosition(event) {
   input.keyboardActive = false;
 }
 
-// 枠外やキャンバス全体をタップした際のリップル（水面エフェクト）および枠外パドル移動の処理
+// 画面をタップ/クリックしたときの処理
+// 波紋は画面全体のオーバーレイに、タップした位置そのままで表示される（枠の外でもOK）
 window.addEventListener("pointerdown", event => {
   const rect = DOM.canvas.getBoundingClientRect();
-  
+
   // キャンバスの内部・外部を判定
   const isInsideCanvas = event.clientX >= rect.left && event.clientX <= rect.right &&
                          event.clientY >= rect.top && event.clientY <= rect.bottom;
 
   if (isInsideCanvas) {
+    if (RIPPLE_ON_CANVAS_TAP) spawnRipple(event.clientX, event.clientY);
     updatePointerPosition(event);
     if (state.playing && !state.paused && stickyBall) {
       launchBall();
     }
   } else {
-    // 枠外がタップされた場合：水面に手を突っ込んだような波紋エフェクトを発生
-    const canvasX = (event.clientX - rect.left) * (GAME_WIDTH / rect.width);
-    const canvasY = (event.clientY - rect.top) * (GAME_HEIGHT / rect.height);
-    
-    ripples.push({
-      x: canvasX,
-      y: canvasY,
-      radius: 5,
-      maxRadius: 120,
-      speed: 3.5,
-      alpha: 0.9,
-      decay: 0.025
-    });
+    // 枠外タップ：タップした位置にそのまま波紋を発生
+    spawnRipple(event.clientX, event.clientY);
 
     // 枠外の右側 / 左側の判定によるパドル移動
     const screenCenterX = rect.left + rect.width / 2;
