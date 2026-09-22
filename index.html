@@ -3,212 +3,242 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="BRICK-BREAKER.png">
-<title>Retro Brick Breaker - Ultimate Edition</title>
+<title>Retro Brick Breaker - Complete Edition</title>
 <style>
-:root{--bg-color:#0d0e15;--panel-color:#1a1c29;--accent-color:#00ffcc;--text-color:#ffffff;--text-muted:#8892b0;--primary-btn:#00ffcc;--danger-btn:#ff4a5a;--border-color:#2d3142;}*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}html,body{width:100%;height:100%;overflow:hidden;background:var(--bg-color);touch-action:none;-webkit-touch-callout:none;}body{color:var(--text-color);font-family:"Courier New",Courier,monospace,"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:center;position:fixed;inset:0;}#game-container{position:relative;width:800px;height:600px;background:#000;border:4px solid #333;box-shadow:0 0 30px rgba(0,255,204,0.1);overflow:hidden;touch-action:none;flex-shrink:0;}.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:30px;background:var(--bg-color);z-index:10;}.screen.active{display:flex;}#home-screen{display:grid;grid-template-columns:240px 1fr;gap:20px;}.sidebar{background:var(--panel-color);border:2px solid var(--border-color);border-radius:8px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;}.main-panel{display:flex;flex-direction:column;gap:20px;overflow-y:auto;}.game-title{color:var(--accent-color);font-size:24px;font-weight:bold;line-height:1.1;letter-spacing:2px;text-align:center;text-shadow:0 0 10px rgba(0,255,204,0.5);margin-bottom:20px;}.stats-group{margin-bottom:20px;}.stats-title{color:var(--text-muted);font-size:12px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border-color);}.stat-item{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;}.stat-val{color:var(--accent-color);font-weight:bold;}.sidebar-btn{background:transparent;border:2px solid var(--border-color);color:var(--text-color);padding:10px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:bold;transition:0.2s;}.sidebar-btn:hover{border-color:var(--accent-color);color:var(--accent-color);box-shadow:0 0 10px rgba(0,255,204,0.2);}.stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;}.stage-card{position:relative;min-height:120px;padding:12px;background:var(--panel-color);border:2px solid var(--border-color);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;}.stage-card:hover:not(.locked){border-color:var(--accent-color);transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,255,204,0.15);}.stage-card.locked{opacity:0.4;cursor:not-allowed;background:#11121a;}.stage-num{font-size:24px;font-weight:bold;margin-bottom:3px;}.stage-name{color:var(--text-muted);font-size:11px;text-align:center;}.stage-description{color:var(--text-muted);font-size:9px;line-height:1.2;text-align:center;margin-top:6px;}.stage-badge{position:absolute;top:6px;right:6px;color:var(--text-color);background:var(--border-color);font-size:9px;padding:2px 5px;border-radius:4px;}.stage-card.cleared .stage-badge{color:#000;background:#ffd700;font-weight:bold;}#game-screen{padding:0;background:transparent;}#gameCanvas{display:block;width:100%;height:100%;background:#05050a;touch-action:none;}.hud-overlay{position:absolute;top:15px;right:15px;display:none;gap:10px;z-index:20;}.hud-btn{width:36px;height:36px;background:rgba(26,28,41,0.85);border:1px solid var(--border-color);border-radius:6px;color:var(--text-color);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}.hud-btn:hover{color:var(--accent-color);border-color:var(--accent-color);}.modal-layer{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(13,14,21,0.85);backdrop-filter:blur(4px);}.modal-layer.active{display:flex;}.modal-content{width:360px;max-width:calc(100% - 30px);padding:30px;display:flex;flex-direction:column;gap:20px;background:var(--panel-color);border:2px solid var(--border-color);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.5);}.modal-title{color:var(--accent-color);font-size:22px;font-weight:bold;text-align:center;letter-spacing:1px;}.msg-text{color:var(--text-color);font-size:14px;line-height:1.5;text-align:center;}.highlight{color:var(--accent-color);font-weight:bold;}.config-row{display:flex;flex-direction:column;gap:8px;}.config-label{display:flex;justify-content:space-between;color:var(--text-muted);font-size:13px;}.config-row input[type="range"]{width:100%;height:6px;appearance:none;background:var(--border-color);border-radius:3px;outline:none;}.config-row input[type="range"]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;background:var(--accent-color);border-radius:50%;cursor:pointer;box-shadow:0 0 8px var(--accent-color);}.toggle-container{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}input[type="checkbox"]{display:none;}.checkbox-custom{position:relative;width:40px;height:20px;background:var(--border-color);border-radius:10px;transition:0.2s;}.checkbox-custom::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:0.2s;}input[type="checkbox"]:checked + .checkbox-custom{background:var(--accent-color);}input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20px);}.menu-btn{background:transparent;border:2px solid var(--primary-btn);color:var(--primary-btn);padding:12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:bold;text-align:center;text-transform:uppercase;transition:0.2s;}.menu-btn:hover{background:var(--primary-btn);color:#000;box-shadow:0 0 15px rgba(0,255,204,0.4);}.menu-btn.danger{border-color:var(--danger-btn);color:var(--danger-btn);}.menu-btn.danger:hover{background:var(--danger-btn);color:#fff;box-shadow:0 0 15px rgba(255,74,90,0.4);}
-
-/* 画面全体に波紋を表示するためのオーバーレイCanvas（枠の外も含む） */
-#rippleCanvas {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9000;
-}
-
-/* スマホ用発射ボタン */
-#btn-launch-mobile {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 76px;
-  height: 76px;
-  background: rgba(0, 255, 204, 0.25);
-  border: 2px solid var(--accent-color);
-  color: var(--accent-color);
-  border-radius: 50%;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: bold;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 25;
-  box-shadow: 0 0 15px rgba(0,255,204,0.4);
-  backdrop-filter: blur(4px);
-  cursor: pointer;
-  touch-action: none;
-}
-#btn-launch-mobile:active {
-  background: var(--accent-color);
-  color: #000;
-  transform: scale(0.95);
-}
-
-/* 縦向き時の注意書きオーバーレイ */
-#rotate-warning {
-  position: fixed;
-  inset: 0;
-  background: rgba(13, 14, 21, 0.95);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-  color: var(--text-color);
-  font-family: inherit;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-}
-#rotate-warning.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-.rotate-icon {
-  font-size: 48px;
-  animation: rotateAnim 2s infinite ease-in-out;
-}
-@keyframes rotateAnim {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(90deg); }
-}
-
-/* レスポンシブ：アスペクト比 4:3 (800x600) を維持 */
+:root{--bg-color:#0d0e15;--panel-color:#1a1c29;--accent-color:#00ffcc;--text-color:#ffffff;--text-muted:#8892b0;--primary-btn:#00ffcc;--danger-btn:#ff4a5a;--border-color:#2d3142;}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
+html{touch-action:manipulation;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg-color);touch-action:none;}
+body{color:var(--text-color);font-family:"Courier New",Courier,monospace,"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:center;position:fixed;inset:0;}
+#game-container{position:relative;width:800px;height:600px;background:#000;border:4px solid #333;box-shadow:0 0 30px rgba(0,255,204,0.1);overflow:hidden;touch-action:none;flex-shrink:0;}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:30px;background:var(--bg-color);z-index:10;overflow:auto;}
+.screen.active{display:flex;}
+#home-screen{display:none;grid-template-columns:240px 1fr;gap:20px;}
+#home-screen.active{display:grid;}
+.sidebar{background:var(--panel-color);border:2px solid var(--border-color);border-radius:8px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;overflow:auto;}
+.main-panel{display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
+.game-title{color:var(--accent-color);font-size:24px;font-weight:bold;line-height:1.1;letter-spacing:2px;text-align:center;text-shadow:0 0 10px rgba(0,255,204,0.5);margin-bottom:16px;}
+.stats-group{margin-bottom:16px;}
+.stats-title{color:var(--text-muted);font-size:12px;text-transform:uppercase;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border-color);}
+.stat-item{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+.stat-val{color:var(--accent-color);font-weight:bold;}
+.sidebar-btn{background:transparent;border:2px solid var(--border-color);color:var(--text-color);padding:8px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:bold;font-size:12px;transition:0.2s;}
+.sidebar-btn:hover,.sidebar-btn.active-nav{border-color:var(--accent-color);color:var(--accent-color);box-shadow:0 0 10px rgba(0,255,204,0.2);}
+.nav-col{display:flex;flex-direction:column;gap:6px;}
+.stage-grid,.shop-grid,.challenge-grid,.pack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.stage-card,.shop-card,.challenge-card,.pack-card,.achieve-card{position:relative;min-height:110px;padding:12px;background:var(--panel-color);border:2px solid var(--border-color);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;text-align:center;gap:4px;}
+.stage-card:hover:not(.locked),.shop-card:hover,.challenge-card:hover,.pack-card:hover{border-color:var(--accent-color);transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,255,204,0.15);}
+.stage-card.locked{opacity:0.4;cursor:not-allowed;background:#11121a;}
+.stage-num{font-size:22px;font-weight:bold;}
+.stage-name,.card-name{color:var(--text-muted);font-size:11px;}
+.stage-description,.card-desc{color:var(--text-muted);font-size:9px;line-height:1.25;margin-top:4px;}
+.stage-badge,.card-badge{position:absolute;top:6px;right:6px;color:var(--text-color);background:var(--border-color);font-size:9px;padding:2px 5px;border-radius:4px;}
+.stage-card.cleared .stage-badge,.achieve-card.unlocked .card-badge{color:#000;background:#ffd700;font-weight:bold;}
+.price{color:var(--accent-color);font-size:12px;font-weight:bold;}
+.owned{border-color:#ffd700;}
+.equipped{border-color:var(--accent-color);box-shadow:0 0 12px rgba(0,255,204,0.25);}
+#game-screen{padding:0;background:transparent;overflow:hidden;}
+#gameCanvas{display:block;width:100%;height:100%;background:#05050a;touch-action:none;}
+.hud-overlay{position:absolute;top:15px;right:15px;display:none;gap:10px;z-index:20;}
+.hud-btn{width:36px;height:36px;background:rgba(26,28,41,0.85);border:1px solid var(--border-color);border-radius:6px;color:var(--text-color);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.hud-btn:hover{color:var(--accent-color);border-color:var(--accent-color);}
+.modal-layer{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(13,14,21,0.85);backdrop-filter:blur(4px);}
+.modal-layer.active{display:flex;}
+.modal-content{width:380px;max-width:calc(100% - 30px);max-height:90%;overflow:auto;padding:28px;display:flex;flex-direction:column;gap:16px;background:var(--panel-color);border:2px solid var(--border-color);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.5);}
+.modal-title{color:var(--accent-color);font-size:22px;font-weight:bold;text-align:center;letter-spacing:1px;}
+.msg-text{color:var(--text-color);font-size:14px;line-height:1.5;text-align:center;}
+.highlight{color:var(--accent-color);font-weight:bold;}
+.config-row{display:flex;flex-direction:column;gap:8px;}
+.config-label{display:flex;justify-content:space-between;color:var(--text-muted);font-size:13px;}
+.config-row input[type="range"]{width:100%;height:6px;appearance:none;background:var(--border-color);border-radius:3px;outline:none;}
+.config-row input[type="range"]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;background:var(--accent-color);border-radius:50%;cursor:pointer;box-shadow:0 0 8px var(--accent-color);}
+.toggle-container{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+input[type="checkbox"]{display:none;}
+.checkbox-custom{position:relative;width:40px;height:20px;background:var(--border-color);border-radius:10px;transition:0.2s;}
+.checkbox-custom::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:0.2s;}
+input[type="checkbox"]:checked + .checkbox-custom{background:var(--accent-color);}
+input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20px);}
+.menu-btn{background:transparent;border:2px solid var(--primary-btn);color:var(--primary-btn);padding:12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:bold;text-align:center;text-transform:uppercase;transition:0.2s;}
+.menu-btn:hover{background:var(--primary-btn);color:#000;box-shadow:0 0 15px rgba(0,255,204,0.4);}
+.menu-btn.danger{border-color:var(--danger-btn);color:var(--danger-btn);}
+.menu-btn.danger:hover{background:var(--danger-btn);color:#fff;box-shadow:0 0 15px rgba(255,74,90,0.4);}
+.menu-btn.share{border-color:#1d9bf0;color:#1d9bf0;}
+.menu-btn.share:hover{background:#1d9bf0;color:#fff;}
+.panel-title{font-size:18px;letter-spacing:1px;border-bottom:2px solid var(--border-color);padding-bottom:8px;}
+.panel-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.achieve-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.achieve-card{min-height:90px;cursor:default;}
+.achieve-card.locked-ach{opacity:0.45;}
+.file-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.hidden-file{display:none;}
+#rippleCanvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9000;}
+#btn-launch-mobile{position:absolute;bottom:20px;right:20px;width:76px;height:76px;background:rgba(0,255,204,0.25);border:2px solid var(--accent-color);color:var(--accent-color);border-radius:50%;font-family:inherit;font-size:14px;font-weight:bold;display:none;align-items:center;justify-content:center;z-index:25;box-shadow:0 0 15px rgba(0,255,204,0.4);backdrop-filter:blur(4px);cursor:pointer;touch-action:none;}
+#btn-launch-mobile:active{background:var(--accent-color);color:#000;transform:scale(0.95);}
 @media (max-width: 820px), (max-height: 620px) {
-  #game-container {
-    width: 100vw;
-    height: calc(100vw * (600 / 800));
-    max-height: 100vh;
-    max-width: calc(100vh * (800 / 600));
-    border-width: 2px;
-  }
-  .screen { padding: 15px; }
-  #home-screen { grid-template-columns: 170px 1fr; gap: 10px; }
-  .sidebar { padding: 12px; }
-  .game-title { font-size: 18px; }
-  .stage-grid { grid-template-columns: repeat(2,1fr); gap: 10px; }
-  .stage-card { min-height: 100px; padding: 10px; }
+  #game-container{width:100vw;height:calc(100vw * (600 / 800));max-height:100vh;max-width:calc(100vh * (800 / 600));border-width:2px;}
+  .screen{padding:12px;}
+  #home-screen.active{grid-template-columns:150px 1fr;gap:8px;}
+  .sidebar{padding:10px;}
+  .game-title{font-size:16px;margin-bottom:8px;}
+  .stage-grid,.shop-grid,.challenge-grid,.pack-grid,.achieve-list{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .stage-card,.shop-card,.challenge-card,.pack-card{min-height:92px;padding:8px;}
 }
-
-/* スマホ用レイアウト */
+@media (orientation: portrait) {
+  #game-container{width:min(100vw, calc(100vh * 800 / 600));height:min(calc(100vw * 600 / 800), 100vh);}
+}
+@media (hover: none) and (pointer: coarse) {
+  #btn-launch-mobile{display:flex;}
+  .hud-overlay{top:8px;right:8px;}
+}
 @media (hover: none) and (pointer: coarse) and (max-width: 820px) {
-  #home-screen { display: flex !important; flex-direction: column; overflow-y: auto; }
-  .sidebar { flex-shrink: 0; }
-  .main-panel { overflow: visible; }
-  .game-title { margin-bottom: 10px; }
-  .stats-group { margin-bottom: 10px; }
-  .sidebar > div:last-child { flex-direction: row !important; }
-  .sidebar-btn { flex: 1; font-size: 11px; }
-  .stage-grid { grid-template-columns: repeat(2,1fr); }
-  .hud-overlay { top: 8px; right: 8px; }
-  .hud-btn { width: 34px; height: 34px; }
-  #btn-launch-mobile { display: flex; }
+  #home-screen.active{display:flex !important;flex-direction:column;overflow-y:auto;}
+  .sidebar{flex-shrink:0;}
+  .nav-col{flex-direction:row;flex-wrap:wrap;}
+  .sidebar-btn{flex:1;min-width:90px;font-size:10px;}
 }
-
-@media (hover: none) and (pointer: coarse) and (max-width: 380px) {
-  .stage-grid { grid-template-columns: 1fr; }
-  .stage-card { min-height: 90px; }
+@media (max-width: 380px) {
+  .stage-grid,.shop-grid,.challenge-grid,.pack-grid,.achieve-list{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
-
-<div id="rotate-warning">
-  <div class="rotate-icon">📱</div>
-  <div style="font-size:18px; font-weight:bold; color:var(--accent-color);">スマホを横向きにしてください</div>
-  <div style="font-size:12px; color:var(--text-muted); text-align:center; padding:0 20px;">このゲームは横画面プレイに最適化されています</div>
-</div>
-
-<div id="game-container">
-<div id="hud-overlay" class="hud-overlay">
-<button id="btn-hud-config" class="hud-btn" title="設定">⚙️</button>
-<button id="btn-hud-pause" class="hud-btn" title="一時停止">⏸</button>
-</div>
-<button id="btn-launch-mobile">発射</button>
-
-<section id="home-screen" class="screen active">
-<aside class="sidebar">
-<div>
-<div class="game-title">BRICK<br>BREAKER</div>
-<div class="stats-group">
-<div class="stats-title">PLAYER STATS</div>
-<div class="stat-item"><span>最高スコア</span><span id="stat-high-score" class="stat-val">0</span></div>
-<div class="stat-item"><span>解放ステージ</span><span id="stat-unlocked" class="stat-val">1/20</span></div>
-<div class="stat-item"><span>クリア回数</span><span id="stat-cleared-count" class="stat-val">0</span></div>
-</div>
-</div>
-<div style="display:flex;flex-direction:column;gap:8px;">
-<button id="btn-home-config" class="sidebar-btn">⚙️ オーディオ設定</button>
-<button id="btn-reset-data" class="sidebar-btn" style="border-color:#444;color:#aaa;">データ初期化</button>
-</div>
-</aside>
-<main class="main-panel">
-<div style="border-bottom:2px solid var(--border-color);padding-bottom:10px;margin-bottom:10px;">
-<h2 style="font-size:18px;letter-spacing:1px;">STAGE SELECT</h2>
-<p style="font-size:11px;color:var(--text-muted);margin-top:4px;">ステージをクリアすると次のステージが解放されます。（全20ステージ）</p>
-</div>
-<div id="stage-grid-container" class="stage-grid"></div>
-</main>
-</section>
-<section id="game-screen" class="screen">
-<canvas id="gameCanvas" width="800" height="600"></canvas>
-</section>
-<div id="modal-pause" class="modal-layer">
-<div class="modal-content">
-<div class="modal-title">PAUSED</div>
-<div class="msg-text">ゲームは一時停止状態です。</div>
-<button id="btn-pause-resume" class="menu-btn">ゲームに戻る</button>
-<button id="btn-pause-retire" class="menu-btn danger">リタイアする</button>
-</div>
-</div>
-<div id="modal-config" class="modal-layer">
-<div class="modal-content">
-<div class="modal-title">SETTINGS</div>
-<div class="config-row">
-<div class="config-label"><span>BGM 音量</span><span id="val-bgm-volume">50%</span></div>
-<input id="slider-bgm" type="range" min="0" max="100" value="50">
-</div>
-<div class="config-row">
-<div class="config-label"><span>SE 音量</span><span id="val-se-volume">70%</span></div>
-<input id="slider-se" type="range" min="0" max="100" value="70">
-</div>
-<div class="config-row">
-<label class="toggle-container">
-<span style="font-size:13px;color:var(--text-muted);">画面の振動エフェクト</span>
-<span><input id="chk-shake" type="checkbox" checked><span class="checkbox-custom"></span></span>
-</label>
-</div>
-<button id="btn-config-close" class="menu-btn">閉じる</button>
-</div>
-</div>
-<div id="modal-result" class="modal-layer">
-<div class="modal-content">
-<div id="result-title" class="modal-title">STAGE CLEAR</div>
-<div id="result-text" class="msg-text"></div>
-<button id="btn-result-action" class="menu-btn">次のステージへ</button>
-<button id="btn-result-home" class="sidebar-btn">ホームに戻る</button>
-</div>
-</div>
-</div>
-
-<!-- 画面全体（枠の外も含む）に波紋を描画するCanvas -->
 <canvas id="rippleCanvas"></canvas>
+<div id="game-container">
+  <div id="hud-overlay" class="hud-overlay">
+    <button id="btn-hud-config" class="hud-btn" title="設定">⚙️</button>
+    <button id="btn-hud-pause" class="hud-btn" title="一時停止">⏸</button>
+  </div>
+  <button id="btn-launch-mobile" type="button">発射</button>
+
+  <section id="home-screen" class="screen active">
+    <aside class="sidebar">
+      <div>
+        <div class="game-title">BRICK<br>BREAKER</div>
+        <div class="stats-group">
+          <div class="stats-title">PLAYER STATS</div>
+          <div class="stat-item"><span>最高スコア</span><span id="stat-high-score" class="stat-val">0</span></div>
+          <div class="stat-item"><span>解放ステージ</span><span id="stat-unlocked" class="stat-val">1/20</span></div>
+          <div class="stat-item"><span>クリア回数</span><span id="stat-cleared-count" class="stat-val">0</span></div>
+          <div class="stat-item"><span>Bポイント</span><span id="stat-bpoints" class="stat-val">0</span></div>
+          <div class="stat-item"><span>実績</span><span id="stat-achievements" class="stat-val">0/12</span></div>
+        </div>
+      </div>
+      <div class="nav-col">
+        <button id="nav-stages" class="sidebar-btn active-nav">ステージ</button>
+        <button id="nav-challenge" class="sidebar-btn">チャレンジ</button>
+        <button id="nav-shop" class="sidebar-btn">ショップ</button>
+        <button id="nav-achieve" class="sidebar-btn">実績</button>
+        <button id="nav-packs" class="sidebar-btn">追加パック</button>
+        <button id="btn-home-config" class="sidebar-btn">⚙️ 設定</button>
+        <button id="btn-reset-data" class="sidebar-btn" style="border-color:#444;color:#aaa;">データ初期化</button>
+      </div>
+    </aside>
+    <main class="main-panel">
+      <div id="panel-stages">
+        <h2 class="panel-title">STAGE SELECT</h2>
+        <p class="panel-sub">クリアすると次が解放されます。クリアが早いほどタイムボーナス、遅いと減点されます。</p>
+        <div id="stage-grid-container" class="stage-grid" style="margin-top:12px;"></div>
+      </div>
+      <div id="panel-challenge" style="display:none;">
+        <h2 class="panel-title">CHALLENGE</h2>
+        <p class="panel-sub">特殊ルールの挑戦。結果はXに投稿できます。</p>
+        <div class="challenge-grid" style="margin-top:12px;">
+          <div class="challenge-card" id="card-onelife">
+            <div class="card-badge">HARD</div>
+            <div class="stage-num">1 LIFE</div>
+            <div class="card-name">ワンライフチャレンジ</div>
+            <div class="card-desc">残機は1だけ。ミスしたら即終了。解放済みステージから挑戦。</div>
+          </div>
+          <div class="challenge-card" id="card-timeattack">
+            <div class="card-badge">SPEED</div>
+            <div class="stage-num">TIME</div>
+            <div class="card-name">タイムアタック</div>
+            <div class="card-desc">90秒以内にクリア。残り時間が多いほど高得点。</div>
+          </div>
+        </div>
+        <p class="panel-sub" style="margin-top:14px;">挑戦するステージ</p>
+        <div id="challenge-stage-grid" class="stage-grid" style="margin-top:8px;"></div>
+      </div>
+      <div id="panel-shop" style="display:none;">
+        <h2 class="panel-title">B-POINT SHOP</h2>
+        <p class="panel-sub">獲得スコアの 1/10 が Bポイントになります。パドルとボールの見た目・効果を購入して装備できます。</p>
+        <div id="shop-grid" class="shop-grid" style="margin-top:12px;"></div>
+      </div>
+      <div id="panel-achieve" style="display:none;">
+        <h2 class="panel-title">ACHIEVEMENTS</h2>
+        <p class="panel-sub">条件を満たすと自動で開放されます。</p>
+        <div id="achieve-grid" class="achieve-list" style="margin-top:12px;"></div>
+      </div>
+      <div id="panel-packs" style="display:none;">
+        <h2 class="panel-title">COURSE PACKS</h2>
+        <p class="panel-sub">追加コースをインストール、またはJSONをダウンロード／読み込みできます。</p>
+        <div id="pack-grid" class="pack-grid" style="margin-top:12px;"></div>
+        <div class="file-row" style="margin-top:16px;">
+          <button id="btn-import-pack" class="menu-btn" type="button">JSONを読み込む</button>
+          <input id="pack-file" class="hidden-file" type="file" accept="application/json,.json">
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <section id="game-screen" class="screen">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+  </section>
+
+  <div id="modal-pause" class="modal-layer">
+    <div class="modal-content">
+      <div class="modal-title">PAUSED</div>
+      <div class="msg-text">ゲームは一時停止状態です。</div>
+      <button id="btn-pause-resume" class="menu-btn">ゲームに戻る</button>
+      <button id="btn-pause-retire" class="menu-btn danger">リタイアする</button>
+    </div>
+  </div>
+  <div id="modal-config" class="modal-layer">
+    <div class="modal-content">
+      <div class="modal-title">SETTINGS</div>
+      <div class="config-row">
+        <div class="config-label"><span>BGM 音量</span><span id="val-bgm-volume">50%</span></div>
+        <input id="slider-bgm" type="range" min="0" max="100" value="50">
+      </div>
+      <div class="config-row">
+        <div class="config-label"><span>SE 音量</span><span id="val-se-volume">70%</span></div>
+        <input id="slider-se" type="range" min="0" max="100" value="70">
+      </div>
+      <div class="config-row">
+        <label class="toggle-container">
+          <span style="font-size:13px;color:var(--text-muted);">画面の振動エフェクト</span>
+          <span><input id="chk-shake" type="checkbox" checked><span class="checkbox-custom"></span></span>
+        </label>
+      </div>
+      <button id="btn-config-close" class="menu-btn">閉じる</button>
+    </div>
+  </div>
+  <div id="modal-result" class="modal-layer">
+    <div class="modal-content">
+      <div id="result-title" class="modal-title">STAGE CLEAR</div>
+      <div id="result-text" class="msg-text"></div>
+      <button id="btn-result-action" class="menu-btn">次のステージへ</button>
+      <button id="btn-share-x" class="menu-btn share">Xでポストする</button>
+      <button id="btn-result-home" class="sidebar-btn">ホームに戻る</button>
+    </div>
+  </div>
+</div>
 
 <script>
 "use strict";
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
-const SAVE_KEY = "retro_brick_breaker_save_v5";
-const COLORS = { accent: "#00ffcc", white: "#ffffff", danger: "#ff4a5a", pink: "#ff00aa", yellow: "#ffff00", purple: "#aa00ff", blue: "#00bfff", gold: "#ffd700", dark: "#2a1b4e" };
-
-// 波紋の設定
-const RIPPLE_ON_CANVAS_TAP = false; // true にすると枠の内側をタップしたときも波紋が出ます
+const SAVE_KEY = "retro_brick_breaker_save_v6";
+const BASE_STAGES = 20;
+const COLORS = { accent: "#00ffcc", white: "#ffffff", danger: "#ff4a5a", pink: "#ff00aa", yellow: "#ffff00", purple: "#aa00ff", blue: "#00bfff", gold: "#ffd700", dark: "#2a1b4e", ice: "#7ecbff", fire: "#ff6a00" };
+const RIPPLE_ON_CANVAS_TAP = false;
 const RIPPLE_MAX_RADIUS = 160;
+const TIME_ATTACK_LIMIT = 90;
+const COMBO_WINDOW = 1.8;
 
 const STAGES = {
   1: { name: "NORMAL FIELD", rows: 4, cols: 9, description: "基本のブロック配置。操作に慣れよう。" },
@@ -233,7 +263,47 @@ const STAGES = {
   20: { name: "VOID APOCALYPSE", rows: 6, cols: 9, description: "【終焉】すべてのギミックが牙をむく最終試練！" }
 };
 
-const TOTAL_STAGES = 20;
+const BUILTIN_PACK = {
+  id: "void-dlc",
+  name: "VOID DLC PACK",
+  description: "ステージ21〜25。闇と黄金が交差する拡張コース。",
+  priceLabel: "無料インストール / JSONダウンロード可",
+  stages: {
+    21: { name: "NEON GRID", rows: 6, cols: 9, description: "【DLC】ネオン格子。ゴールドと耐久が交互。" },
+    22: { name: "FROST GATE", rows: 6, cols: 9, description: "【DLC】凍結の門。中央に高耐久、外周はスピード。" },
+    23: { name: "PLASMA SPIRE", rows: 6, cols: 9, description: "【DLC】プラズマ尖塔。対角にハードコア。" },
+    24: { name: "GOLDEN VOID", rows: 6, cols: 9, description: "【DLC】黄金の虚空。高得点とブラインド。" },
+    25: { name: "OMEGA CORE", rows: 6, cols: 9, description: "【DLC】最終核。全ギミック同時発動。" }
+  }
+};
+
+const SHOP_ITEMS = {
+  paddle_default: { id: "paddle_default", kind: "paddle", name: "CLASSIC PADDLE", price: 0, desc: "標準パドル。" },
+  paddle_neon: { id: "paddle_neon", kind: "paddle", name: "NEON PADDLE", price: 80, desc: "サイバーな発光パドル。" },
+  paddle_gold: { id: "paddle_gold", kind: "paddle", name: "GOLD PADDLE", price: 150, desc: "黄金のパドル。見栄え重視。" },
+  paddle_energy: { id: "paddle_energy", kind: "paddle", name: "ENERGY PADDLE", price: 220, desc: "エネルギー刃のパドル。" },
+  ball_default: { id: "ball_default", kind: "ball", name: "NORMAL BALL", price: 0, desc: "標準ボール。" },
+  ball_fire: { id: "ball_fire", kind: "ball", name: "FIRE BALL", price: 120, desc: "炎の球。ブロックに2ダメージ。" },
+  ball_ice: { id: "ball_ice", kind: "ball", name: "ICE BALL", price: 120, desc: "氷の球。ヒット時に追加点。" },
+  ball_plasma: { id: "ball_plasma", kind: "ball", name: "PLASMA BALL", price: 200, desc: "隣接ブロックへ連鎖ダメージ。" },
+  ball_void: { id: "ball_void", kind: "ball", name: "VOID BALL", price: 300, desc: "1ヒット貫通する虚空の球。" }
+};
+
+const ACHIEVEMENTS = {
+  first_clear: { name: "FIRST BREAK", desc: "いずれかのステージをクリア" },
+  combo_10: { name: "COMBO 10", desc: "コンボを10まで繋ぐ" },
+  combo_20: { name: "COMBO 20", desc: "コンボを20まで繋ぐ" },
+  stage_10: { name: "CASTLE GATE", desc: "ステージ10をクリア" },
+  stage_20: { name: "APOCALYPSE", desc: "ステージ20をクリア" },
+  one_life: { name: "NO MISS", desc: "1ライフチャレンジをクリア" },
+  time_gold: { name: "SPEEDSTER", desc: "タイムアタックをクリア" },
+  shopper: { name: "CUSTOMIZER", desc: "ショップで何か買う" },
+  rich: { name: "B-TYCOON", desc: "Bポイントを1000貯める" },
+  fire_user: { name: "PYRO", desc: "ファイアボールを装備してプレイ" },
+  pack_dl: { name: "EXPAND", desc: "追加パックを導入する" },
+  score_8k: { name: "HIGH ROLLER", desc: "1プレイで8000点以上" }
+};
+
 const $ = id => document.getElementById(id);
 const DOM = {
   container: $("game-container"),
@@ -246,6 +316,8 @@ const DOM = {
   highScore: $("stat-high-score"),
   unlocked: $("stat-unlocked"),
   clearedCount: $("stat-cleared-count"),
+  bpoints: $("stat-bpoints"),
+  achievements: $("stat-achievements"),
   pauseModal: $("modal-pause"),
   configModal: $("modal-config"),
   resultModal: $("modal-result"),
@@ -258,21 +330,44 @@ const DOM = {
   seValue: $("val-se-volume"),
   shake: $("chk-shake")
 };
-
 const ctx = DOM.canvas.getContext("2d");
 const rippleCtx = DOM.rippleCanvas.getContext("2d");
-const state = { highScore: 0, unlockedStage: 1, clearedCount: 0, currentStage: 1, score: 0, lives: 3, playing: false, paused: false, screenShake: 0, configSource: "home", lastTime: 0, blindTimer: 0, flashTimer: 0 };
+
+const state = {
+  highScore: 0, unlockedStage: 1, clearedCount: 0, currentStage: 1, score: 0, lives: 3,
+  playing: false, paused: false, screenShake: 0, configSource: "home", lastTime: 0,
+  blindTimer: 0, flashTimer: 0, bPoints: 0, owned: ["paddle_default", "ball_default"],
+  equippedPaddle: "paddle_default", equippedBall: "ball_default", achievements: {},
+  installedPacks: [], extraStages: {}, mode: "story", challengeStage: 1,
+  elapsed: 0, lastTimeBonus: 0, lastBGain: 0, combo: 0, comboTimer: 0, maxCombo: 0,
+  lastShareText: ""
+};
 const paddle = { x: 350, y: 550, width: 100, baseWidth: 100, height: 15, speed: 600, laserTimer: 0, laserShotTimer: 0 };
 const activeBuffs = { expand: 0, laser: 0 };
-let balls = [];
-let bricks = [];
-let items = [];
-let particles = [];
-let floatingTexts = [];
-let lasers = [];
-let ripples = []; // 画面全体用の波紋（座標はブラウザ画面基準のピクセル）
+let balls = [], bricks = [], items = [], particles = [], floatingTexts = [], lasers = [], ripples = [];
 let stickyBall = true;
 const input = { left: false, right: false, pointerActive: false, pointerX: GAME_WIDTH / 2, keyboardActive: false };
+
+function totalStageCount() {
+  return BASE_STAGES + Object.keys(state.extraStages).length;
+}
+function getStageConfig(stage) {
+  return STAGES[stage] || state.extraStages[stage] || null;
+}
+function isStageLocked(stage) {
+  if (stage <= BASE_STAGES) return stage > state.unlockedStage;
+  if (!state.extraStages[stage]) return true;
+  if (state.unlockedStage < BASE_STAGES) return true;
+  const extras = Object.keys(state.extraStages).map(Number).sort((a, b) => a - b);
+  const idx = extras.indexOf(stage);
+  if (idx <= 0) return false;
+  return !clearedStage(extras[idx - 1]);
+}
+function clearedStage(stage) {
+  if (stage < state.unlockedStage) return true;
+  if (stage === BASE_STAGES && state.clearedCount > 0) return true;
+  return !!state.achievements["pack_stage_" + stage];
+}
 
 class SoundEngine {
   constructor() { this.ctx = null; this.bgmGain = null; this.seGain = null; this.bgmInterval = null; this.bgmVolume = 0.5; this.seVolume = 0.7; this.bgmStep = 0; this.playingBGM = false; }
@@ -287,7 +382,7 @@ class SoundEngine {
       this.seGain.connect(this.ctx.destination);
       this.updateVolumes();
     }
-    if (this.ctx.state === "suspended") { this.ctx.resume(); }
+    if (this.ctx.state === "suspended") this.ctx.resume();
   }
   updateVolumes() {
     if (!this.ctx) return;
@@ -307,48 +402,27 @@ class SoundEngine {
       const now = this.ctx.currentTime;
       osc.type = type;
       osc.frequency.setValueAtTime(frequency, now);
-      if (pitchSlide !== 0) {
-        osc.frequency.exponentialRampToValueAtTime(Math.max(20, frequency + pitchSlide), now + duration);
-      }
+      if (pitchSlide !== 0) osc.frequency.exponentialRampToValueAtTime(Math.max(20, frequency + pitchSlide), now + duration);
       gain.gain.setValueAtTime(1.0, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-      osc.connect(gain);
-      gain.connect(output);
-      osc.start(now);
-      osc.stop(now + duration);
-    } catch (e) { console.warn("Audio error:", e); }
+      osc.connect(gain); gain.connect(output);
+      osc.start(now); osc.stop(now + duration);
+    } catch (e) {}
   }
   playSE(type) {
     this.init();
     switch (type) {
       case "bounce": this.tone(360, "sine", 0.06, true, 80); break;
       case "paddle": this.tone(520, "triangle", 0.09, true, 150); break;
-      case "break":
-        this.tone(440, "square", 0.1, true, -200);
-        setTimeout(() => this.tone(880, "sine", 0.08, true, 0), 30);
-        break;
-      case "break_hard":
-        this.tone(130, "sawtooth", 0.2, true, -80);
-        setTimeout(() => this.tone(220, "square", 0.12, true, -50), 40);
-        setTimeout(() => this.tone(350, "triangle", 0.1, true, 100), 90);
-        break;
-      case "powerup":
-        [400, 550, 700, 950].forEach((f, i) => setTimeout(() => this.tone(f, "sine", 0.12, true, 50), i * 60));
-        break;
+      case "break": this.tone(440, "square", 0.1, true, -200); setTimeout(() => this.tone(880, "sine", 0.08, true, 0), 30); break;
+      case "break_hard": this.tone(130, "sawtooth", 0.2, true, -80); setTimeout(() => this.tone(220, "square", 0.12, true, -50), 40); break;
+      case "powerup": [400, 550, 700, 950].forEach((f, i) => setTimeout(() => this.tone(f, "sine", 0.12, true, 50), i * 60)); break;
       case "laser": this.tone(960, "sawtooth", 0.06, true, -400); break;
-      case "lost_ball":
-        this.tone(180, "sawtooth", 0.25, true, -120);
-        setTimeout(() => this.tone(100, "square", 0.35, true, -80), 80);
-        setTimeout(() => this.tone(60, "sawtooth", 0.4, true, -40), 160);
-        break;
-      case "gameover":
-        this.tone(280, "sawtooth", 0.3, true, -100);
-        setTimeout(() => this.tone(210, "sawtooth", 0.3, true, -80), 220);
-        setTimeout(() => this.tone(130, "sawtooth", 0.6, true, -50), 450);
-        break;
-      case "clear":
-        [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => setTimeout(() => this.tone(f, "triangle", 0.2, true, 0), i * 100));
-        break;
+      case "lost_ball": this.tone(180, "sawtooth", 0.25, true, -120); break;
+      case "gameover": this.tone(280, "sawtooth", 0.3, true, -100); setTimeout(() => this.tone(130, "sawtooth", 0.6, true, -50), 220); break;
+      case "clear": [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => this.tone(f, "triangle", 0.2, true, 0), i * 100)); break;
+      case "combo": this.tone(700 + state.combo * 20, "sine", 0.07, true, 80); break;
+      case "buy": this.tone(880, "triangle", 0.12, true, 200); break;
     }
   }
   startBGM() {
@@ -360,8 +434,7 @@ class SoundEngine {
     const melody = [261.63, 293.66, 329.63, 349.23, 392.00, 349.23, 329.63, 293.66];
     this.bgmInterval = setInterval(() => {
       if (!this.ctx || this.ctx.state === "suspended") return;
-      const freq = melody[this.bgmStep % melody.length];
-      this.tone(freq / 2, "square", 0.18, false);
+      this.tone(melody[this.bgmStep % melody.length] / 2, "square", 0.18, false);
       this.bgmStep++;
     }, 250);
   }
@@ -378,85 +451,199 @@ function loadGameData() {
   try {
     const data = JSON.parse(saved);
     state.highScore = Number(data.highScore) || 0;
-    state.unlockedStage = Math.min(TOTAL_STAGES, Math.max(1, Number(data.unlockedStage) || 1));
+    state.unlockedStage = Math.min(BASE_STAGES, Math.max(1, Number(data.unlockedStage) || 1));
     state.clearedCount = Number(data.clearedCount) || 0;
+    state.bPoints = Number(data.bPoints) || 0;
+    state.owned = Array.isArray(data.owned) ? data.owned : ["paddle_default", "ball_default"];
+    if (!state.owned.includes("paddle_default")) state.owned.push("paddle_default");
+    if (!state.owned.includes("ball_default")) state.owned.push("ball_default");
+    state.equippedPaddle = data.equippedPaddle || "paddle_default";
+    state.equippedBall = data.equippedBall || "ball_default";
+    state.achievements = data.achievements || {};
+    state.installedPacks = Array.isArray(data.installedPacks) ? data.installedPacks : [];
+    state.extraStages = data.extraStages || {};
     if (data.bgmVol !== undefined) { sound.bgmVolume = Number(data.bgmVol); DOM.sliderBgm.value = Math.round(sound.bgmVolume * 100); }
     if (data.seVol !== undefined) { sound.seVolume = Number(data.seVol); DOM.sliderSe.value = Math.round(sound.seVolume * 100); }
     DOM.shake.checked = data.shake !== false;
-  } catch (e) { console.warn("Save load error:", e); }
+  } catch (e) {}
   updateVolumeLabels();
   updateHomeHUD();
 }
 function saveGameData() {
-  const data = { highScore: state.highScore, unlockedStage: state.unlockedStage, clearedCount: state.clearedCount, bgmVol: sound.bgmVolume, seVol: sound.seVolume, shake: DOM.shake.checked };
-  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  localStorage.setItem(SAVE_KEY, JSON.stringify({
+    highScore: state.highScore, unlockedStage: state.unlockedStage, clearedCount: state.clearedCount,
+    bPoints: state.bPoints, owned: state.owned, equippedPaddle: state.equippedPaddle, equippedBall: state.equippedBall,
+    achievements: state.achievements, installedPacks: state.installedPacks, extraStages: state.extraStages,
+    bgmVol: sound.bgmVolume, seVol: sound.seVolume, shake: DOM.shake.checked
+  }));
 }
 function updateHomeHUD() {
   DOM.highScore.textContent = state.highScore;
-  DOM.unlocked.textContent = `${state.unlockedStage}/${TOTAL_STAGES}`;
+  DOM.unlocked.textContent = `${state.unlockedStage}/${totalStageCount()}`;
   DOM.clearedCount.textContent = state.clearedCount;
+  DOM.bpoints.textContent = state.bPoints;
+  const unlockedAch = Object.keys(ACHIEVEMENTS).filter(id => state.achievements[id]).length;
+  DOM.achievements.textContent = `${unlockedAch}/${Object.keys(ACHIEVEMENTS).length}`;
 }
 function updateVolumeLabels() {
   DOM.bgmValue.textContent = `${DOM.sliderBgm.value}%`;
   DOM.seValue.textContent = `${DOM.sliderSe.value}%`;
 }
-function renderStageGrid() {
-  DOM.stageGrid.innerHTML = "";
-  for (let stage = 1; stage <= TOTAL_STAGES; stage++) {
-    const config = STAGES[stage];
-    const locked = stage > state.unlockedStage;
-    const cleared = stage < state.unlockedStage || (stage === TOTAL_STAGES && state.clearedCount > 0);
+function unlockAchievement(id) {
+  if (!ACHIEVEMENTS[id] || state.achievements[id]) return;
+  state.achievements[id] = true;
+  addFloatingText(GAME_WIDTH / 2, 120, `実績解除: ${ACHIEVEMENTS[id].name}`, COLORS.gold);
+  saveGameData();
+  updateHomeHUD();
+}
+
+function showPanel(name) {
+  ["stages", "challenge", "shop", "achieve", "packs"].forEach(id => {
+    const el = $("panel-" + id);
+    if (el) el.style.display = id === name ? "block" : "none";
+  });
+  document.querySelectorAll(".sidebar-btn").forEach(btn => btn.classList.remove("active-nav"));
+  const nav = { stages: "nav-stages", challenge: "nav-challenge", shop: "nav-shop", achieve: "nav-achieve", packs: "nav-packs" };
+  if ($(nav[name])) $(nav[name]).classList.add("active-nav");
+  if (name === "stages") renderStageGrid();
+  if (name === "challenge") renderChallengeStages();
+  if (name === "shop") renderShop();
+  if (name === "achieve") renderAchievements();
+  if (name === "packs") renderPacks();
+}
+
+function renderStageGrid(target, onPick, challengePick) {
+  const host = target || DOM.stageGrid;
+  host.innerHTML = "";
+  const max = totalStageCount();
+  for (let stage = 1; stage <= max; stage++) {
+    const config = getStageConfig(stage);
+    if (!config) continue;
+    const locked = isStageLocked(stage);
+    const cleared = clearedStage(stage);
     const card = document.createElement("div");
     card.className = "stage-card";
     if (locked) card.classList.add("locked");
     if (cleared) card.classList.add("cleared");
+    if (challengePick && stage === state.challengeStage) card.classList.add("equipped");
     const badge = locked ? "🔒 ロック" : cleared ? "★ クリア済" : "挑戦可能";
     card.innerHTML = `<div class="stage-badge">${badge}</div><div class="stage-num">${stage}</div><div class="stage-name">${config.name}</div><div class="stage-description">${config.description}</div>`;
     if (!locked) {
-      card.addEventListener("click", () => { sound.init(); startStage(stage); });
+      card.addEventListener("click", () => {
+        sound.init();
+        if (onPick) onPick(stage);
+        else startStage(stage, "story");
+      });
     }
-    DOM.stageGrid.appendChild(card);
+    host.appendChild(card);
   }
 }
+function renderChallengeStages() {
+  renderStageGrid($("challenge-stage-grid"), (stage) => {
+    state.challengeStage = stage;
+    renderChallengeStages();
+  }, true);
+}
+function renderShop() {
+  const host = $("shop-grid");
+  host.innerHTML = "";
+  Object.values(SHOP_ITEMS).forEach(item => {
+    const owned = state.owned.includes(item.id);
+    const equipped = (item.kind === "paddle" ? state.equippedPaddle : state.equippedBall) === item.id;
+    const card = document.createElement("div");
+    card.className = "shop-card" + (owned ? " owned" : "") + (equipped ? " equipped" : "");
+    const badge = equipped ? "装備中" : owned ? "所持" : item.price + " BP";
+    card.innerHTML = `<div class="card-badge">${badge}</div><div class="card-name">${item.name}</div><div class="card-desc">${item.desc}</div><div class="price">${owned ? (equipped ? "装備中" : "装備する") : "購入 " + item.price + " BP"}</div>`;
+    card.addEventListener("click", () => {
+      sound.init();
+      if (!owned) {
+        if (state.bPoints < item.price) { alert("Bポイントが足りません。スコアの1/10がBポイントになります。"); return; }
+        state.bPoints -= item.price;
+        state.owned.push(item.id);
+        unlockAchievement("shopper");
+        sound.playSE("buy");
+      }
+      if (item.kind === "paddle") state.equippedPaddle = item.id;
+      else state.equippedBall = item.id;
+      saveGameData();
+      updateHomeHUD();
+      renderShop();
+    });
+    host.appendChild(card);
+  });
+}
+function renderAchievements() {
+  const host = $("achieve-grid");
+  host.innerHTML = "";
+  Object.entries(ACHIEVEMENTS).forEach(([id, ach]) => {
+    const unlocked = !!state.achievements[id];
+    const card = document.createElement("div");
+    card.className = "achieve-card" + (unlocked ? " unlocked" : " locked-ach");
+    card.innerHTML = `<div class="card-badge">${unlocked ? "★ OPEN" : "LOCK"}</div><div class="card-name">${unlocked ? ach.name : "???"}</div><div class="card-desc">${ach.desc}</div>`;
+    host.appendChild(card);
+  });
+}
+function renderPacks() {
+  const host = $("pack-grid");
+  host.innerHTML = "";
+  const installed = state.installedPacks.includes(BUILTIN_PACK.id);
+  const card = document.createElement("div");
+  card.className = "pack-card" + (installed ? " equipped" : "");
+  card.innerHTML = `<div class="card-badge">${installed ? "導入済" : "追加コース"}</div><div class="card-name">${BUILTIN_PACK.name}</div><div class="card-desc">${BUILTIN_PACK.description}</div><div class="price">${installed ? "JSONダウンロード" : "インストール"}</div>`;
+  card.addEventListener("click", () => {
+    if (!installed) installPackData(BUILTIN_PACK);
+    downloadPackJSON(BUILTIN_PACK);
+  });
+  host.appendChild(card);
+}
+function installPackData(pack) {
+  const stages = pack.stages || {};
+  Object.keys(stages).forEach(k => { state.extraStages[Number(k)] = stages[k]; });
+  if (!state.installedPacks.includes(pack.id)) state.installedPacks.push(pack.id);
+  unlockAchievement("pack_dl");
+  saveGameData();
+  updateHomeHUD();
+  renderPacks();
+  renderStageGrid();
+  alert(`${pack.name} を導入しました。ステージセレクトに追加コースが現れます。`);
+}
+function downloadPackJSON(pack) {
+  const blob = new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (pack.id || "course-pack") + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 function showGameScreen() { DOM.home.classList.remove("active"); DOM.game.classList.add("active"); DOM.hud.style.display = "flex"; }
-function showHomeScreen() { DOM.game.classList.remove("active"); DOM.home.classList.add("active"); DOM.hud.style.display = "none"; renderStageGrid(); updateHomeHUD(); }
+function showHomeScreen() {
+  DOM.game.classList.remove("active"); DOM.home.classList.add("active"); DOM.hud.style.display = "none";
+  showPanel("stages"); updateHomeHUD();
+}
 
 function createBrick(stage, row, col) {
-  let type = "normal"; let hp = 1; let color = COLORS.blue;
+  let type = "normal", hp = 1, color = COLORS.blue;
   switch (stage) {
-    case 1: type = "normal"; hp = 1; color = COLORS.blue; break;
-    case 2:
-      type = (row % 2 === 1) ? "durable" : "normal";
-      hp = (type === "durable") ? 2 : 1;
-      color = (type === "durable") ? COLORS.pink : COLORS.blue;
-      break;
-    case 3:
-      type = ((row + col) % 3 === 0) ? "speed" : "normal";
-      color = (type === "speed") ? COLORS.yellow : COLORS.blue;
-      break;
+    case 1: break;
+    case 2: type = (row % 2 === 1) ? "durable" : "normal"; hp = type === "durable" ? 2 : 1; color = type === "durable" ? COLORS.pink : COLORS.blue; break;
+    case 3: type = ((row + col) % 3 === 0) ? "speed" : "normal"; color = type === "speed" ? COLORS.yellow : COLORS.blue; break;
     case 4:
       if (row === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
       else if (row === 1) { type = "durable"; hp = 2; color = COLORS.pink; }
-      else { type = "normal"; hp = 1; color = COLORS.blue; }
       break;
     case 5: {
-      const centerCol = 4; const dist = Math.abs(col - centerCol);
-      if (row >= dist) {
-        if (row === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
-        else if (row <= 2) { type = "durable"; hp = 2; color = COLORS.pink; }
-        else { type = "normal"; hp = 1; color = COLORS.accent; }
-      } else { return null; }
+      const dist = Math.abs(col - 4);
+      if (row < dist) return null;
+      if (row === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
+      else if (row <= 2) { type = "durable"; hp = 2; color = COLORS.pink; }
+      else { color = COLORS.accent; }
       break;
     }
-    case 6:
-      type = ((row + col) % 2 === 0) ? "speed" : "durable";
-      hp = (type === "durable") ? 2 : 1;
-      color = (type === "durable") ? COLORS.pink : COLORS.yellow;
-      break;
+    case 6: type = ((row + col) % 2 === 0) ? "speed" : "durable"; hp = type === "durable" ? 2 : 1; color = type === "durable" ? COLORS.pink : COLORS.yellow; break;
     case 7:
       if (row % 2 === 0 && col % 2 === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
       else if (row % 2 === 1) { type = "durable"; hp = 2; color = COLORS.pink; }
-      else { type = "normal"; hp = 1; color = COLORS.blue; }
       break;
     case 8:
       if (col === 2 || col === 6) { type = "speed"; color = COLORS.yellow; }
@@ -466,14 +653,12 @@ function createBrick(stage, row, col) {
     case 9:
       if (col === 0 || col === 4 || col === 8) { type = "hardcore"; hp = 3; color = COLORS.purple; }
       else if (row % 2 === 0) { type = "speed"; color = COLORS.yellow; }
-      else { type = "normal"; hp = 1; color = COLORS.blue; }
       break;
     case 10: {
       const pattern = (row * 9 + col) % 4;
       if (pattern === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
       else if (pattern === 1) { type = "durable"; hp = 2; color = COLORS.pink; }
       else if (pattern === 2) { type = "speed"; color = COLORS.yellow; }
-      else { type = "normal"; hp = 1; color = COLORS.blue; }
       break;
     }
     case 11: {
@@ -481,103 +666,126 @@ function createBrick(stage, row, col) {
       if (rand < 0.25) { type = "hardcore"; hp = 3; color = COLORS.purple; }
       else if (rand < 0.5) { type = "durable"; hp = 2; color = COLORS.pink; }
       else if (rand < 0.75) { type = "speed"; color = COLORS.yellow; }
-      else { type = "normal"; hp = 1; color = COLORS.blue; }
       break;
     }
     case 12:
-      if (row === 0 || row === 4) { type = "gold"; hp = 1; color = COLORS.gold; }
+      if (row === 0 || row === 4) { type = "gold"; color = COLORS.gold; }
       else if (col === 0 || col === 8) { type = "durable"; hp = 2; color = COLORS.pink; }
-      else { type = "normal"; hp = 1; color = COLORS.blue; }
       break;
     case 13:
       if ((row + col) % 4 === 0) { type = "speed"; color = COLORS.yellow; }
       else if (row === 2) { type = "hardcore"; hp = 3; color = COLORS.purple; }
-      else { type = "normal"; hp = 1; color = COLORS.accent; }
+      else color = COLORS.accent;
       break;
     case 14:
-      if (col % 2 === 0) { type = "gold"; hp = 1; color = COLORS.gold; }
+      if (col % 2 === 0) { type = "gold"; color = COLORS.gold; }
       else { type = "durable"; hp = 2; color = COLORS.pink; }
       break;
     case 15:
-      if ((row + col) % 5 === 0) { type = "blind"; hp = 1; color = COLORS.dark; }
+      if ((row + col) % 5 === 0) { type = "blind"; color = COLORS.dark; }
       else if (row < 3) { type = "hardcore"; hp = 3; color = COLORS.purple; }
-      else { type = "normal"; hp = 1; color = COLORS.blue; }
       break;
     case 16:
-      if (row === 2 || row === 3) { type = "gold"; hp = 1; color = COLORS.gold; }
+      if (row === 2 || row === 3) { type = "gold"; color = COLORS.gold; }
       else { type = "speed"; color = COLORS.yellow; }
       break;
     case 17:
       if ((row * col) % 3 === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
       else if ((row + col) % 2 === 0) { type = "durable"; hp = 2; color = COLORS.pink; }
-      else { type = "normal"; hp = 1; color = COLORS.blue; }
       break;
     case 18:
       if (row === 0 || row === 5) { type = "hardcore"; hp = 3; color = COLORS.purple; }
       else if (col === 0 || col === 4 || col === 8) { type = "durable"; hp = 2; color = COLORS.pink; }
-      else { type = "gold"; hp = 1; color = COLORS.gold; }
+      else { type = "gold"; color = COLORS.gold; }
       break;
     case 19:
-      if ((row + col) % 3 === 0) { type = "gold"; hp = 1; color = COLORS.gold; }
+      if ((row + col) % 3 === 0) { type = "gold"; color = COLORS.gold; }
       else if (row % 2 === 0) { type = "speed"; color = COLORS.yellow; }
       else { type = "hardcore"; hp = 3; color = COLORS.purple; }
       break;
     case 20: {
       const v = (row + col) % 5;
       if (v === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
-      else if (v === 1) { type = "gold"; hp = 1; color = COLORS.gold; }
-      else if (v === 2) { type = "blind"; hp = 1; color = COLORS.dark; }
+      else if (v === 1) { type = "gold"; color = COLORS.gold; }
+      else if (v === 2) { type = "blind"; color = COLORS.dark; }
       else if (v === 3) { type = "durable"; hp = 2; color = COLORS.pink; }
       else { type = "speed"; color = COLORS.yellow; }
       break;
     }
-    default: type = "normal"; hp = 1; color = COLORS.blue;
+    case 21:
+      if ((row + col) % 2 === 0) { type = "gold"; color = COLORS.gold; }
+      else { type = "durable"; hp = 2; color = COLORS.pink; }
+      break;
+    case 22:
+      if (col >= 3 && col <= 5) { type = "hardcore"; hp = 3; color = COLORS.purple; }
+      else { type = "speed"; color = COLORS.yellow; }
+      break;
+    case 23:
+      if (row === col || row + col === 8) { type = "hardcore"; hp = 3; color = COLORS.purple; }
+      else color = COLORS.accent;
+      break;
+    case 24:
+      if ((row + col) % 4 === 0) { type = "blind"; color = COLORS.dark; }
+      else if (col % 2 === 0) { type = "gold"; color = COLORS.gold; }
+      else { type = "durable"; hp = 2; color = COLORS.pink; }
+      break;
+    case 25: {
+      const v = (row * 3 + col) % 5;
+      if (v === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
+      else if (v === 1) { type = "gold"; color = COLORS.gold; }
+      else if (v === 2) { type = "blind"; color = COLORS.dark; }
+      else if (v === 3) { type = "durable"; hp = 2; color = COLORS.pink; }
+      else { type = "speed"; color = COLORS.yellow; }
+      break;
+    }
   }
-  const width = 74; const height = 22; const padding = 10; const offsetTop = 80; const offsetLeft = 28;
+  const width = 74, height = 22, padding = 10, offsetTop = 80, offsetLeft = 28;
   return { x: offsetLeft + col * (width + padding), y: offsetTop + row * (height + padding), width, height, type, hp, maxHp: hp, color, alive: true, hitAnim: 0 };
 }
-
 function createLevelBricks(stage) {
-  const config = STAGES[stage];
+  const config = getStageConfig(stage) || STAGES[1];
   const result = [];
   for (let row = 0; row < config.rows; row++) {
     for (let col = 0; col < config.cols; col++) {
       const brick = createBrick(stage, row, col);
-      if (brick !== null) result.push(brick);
+      if (brick) result.push(brick);
     }
   }
-  if (result.length === 0) result.push(createBrick(1, 0, 0));
+  if (!result.length) result.push(createBrick(1, 0, 0));
   return result;
 }
-
+function makeBall(x, y, vx, vy) {
+  const skin = state.equippedBall;
+  return { x, y, vx, vy, radius: 8, speedMultiplier: 1, pierce: skin === "ball_void" ? 1 : 0, skin };
+}
 function resetBall() {
-  balls = [{ x: 400, y: 540, vx: 4, vy: -5, radius: 8, speedMultiplier: 1 }];
+  balls = [makeBall(400, 540, 4, -5)];
   stickyBall = true;
 }
-
-function startStage(stage) {
+function startStage(stage, mode) {
   state.currentStage = stage;
+  state.mode = mode || "story";
   state.score = 0;
-  state.lives = 3;
+  state.lives = state.mode === "oneLife" ? 1 : 3;
   state.playing = true;
   state.paused = false;
   state.screenShake = 0;
   state.blindTimer = 0;
   state.flashTimer = 0;
+  state.elapsed = 0;
+  state.combo = 0;
+  state.comboTimer = 0;
+  state.maxCombo = 0;
   paddle.width = paddle.baseWidth;
   paddle.laserTimer = 0;
   paddle.laserShotTimer = 0;
   activeBuffs.expand = 0;
   activeBuffs.laser = 0;
   bricks = createLevelBricks(stage);
-  items = [];
-  particles = [];
-  floatingTexts = [];
-  lasers = [];
+  items = []; particles = []; floatingTexts = []; lasers = [];
   resetBall();
-  input.left = false;
-  input.right = false;
-  input.keyboardActive = false;
+  input.left = input.right = input.keyboardActive = false;
+  if (state.equippedBall === "ball_fire") unlockAchievement("fire_user");
   showGameScreen();
   sound.startBGM();
 }
@@ -587,24 +795,13 @@ function createExplosion(x, y, color, count = 16, isHard = false) {
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = Math.random() * speedFactor + 2;
-    particles.push({
-      x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      radius: Math.random() * 4 + 2,
-      color,
-      alpha: 1,
-      decay: Math.random() * 0.02 + 0.015,
-      shape: Math.random() > 0.5 ? "circle" : "rect"
-    });
+    particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: Math.random() * 4 + 2, color, alpha: 1, decay: Math.random() * 0.02 + 0.015, shape: Math.random() > 0.5 ? "circle" : "rect" });
   }
   particles.push({ x, y, vx: 0, vy: 0, radius: 5, maxRadius: isHard ? 60 : 35, color: "#ffffff", alpha: 0.8, decay: 0.08, isRing: true });
 }
-
 function addFloatingText(x, y, text, color = COLORS.accent) {
   floatingTexts.push({ x, y, text, color, alpha: 1, vy: -1.5 });
 }
-
 function dropItem(x, y) {
   if (Math.random() >= 0.25) return;
   const types = ["expand", "multiball", "laser"];
@@ -612,37 +809,61 @@ function dropItem(x, y) {
   const colors = { expand: "#00ff00", multiball: COLORS.blue, laser: COLORS.danger };
   items.push({ x: x - 8, y, type, color: colors[type], speed: 150, width: 16, height: 16 });
 }
-
 function applyPowerUp(type) {
   state.score += 50;
   sound.playSE("powerup");
   addFloatingText(GAME_WIDTH / 2, 300, "+50 SCORE!", COLORS.accent);
   switch (type) {
-    case "expand":
-      paddle.width = paddle.baseWidth * 1.5;
-      activeBuffs.expand = 8000;
-      break;
+    case "expand": paddle.width = paddle.baseWidth * 1.5; activeBuffs.expand = 8000; break;
     case "multiball":
-      if (balls.length > 0) {
+      if (balls[0]) {
         const base = balls[0];
-        balls.push({ x: base.x, y: base.y, vx: -base.vx - 1, vy: base.vy, radius: 8, speedMultiplier: base.speedMultiplier });
-        balls.push({ x: base.x, y: base.y, vx: base.vx + 1, vy: base.vy * 0.9, radius: 8, speedMultiplier: base.speedMultiplier });
+        balls.push(makeBall(base.x, base.y, -base.vx - 1, base.vy));
+        balls.push(makeBall(base.x, base.y, base.vx + 1, base.vy * 0.9));
       }
       break;
-    case "laser":
-      paddle.laserTimer = 6000;
-      paddle.laserShotTimer = 0;
-      activeBuffs.laser = 6000;
-      break;
+    case "laser": paddle.laserTimer = 6000; paddle.laserShotTimer = 0; activeBuffs.laser = 6000; break;
   }
 }
 
-function damageBrick(brick) {
-  brick.hp--;
+function registerCombo() {
+  state.combo += 1;
+  state.comboTimer = COMBO_WINDOW;
+  state.maxCombo = Math.max(state.maxCombo, state.combo);
+  if (state.combo >= 10) unlockAchievement("combo_10");
+  if (state.combo >= 20) unlockAchievement("combo_20");
+  if (state.combo >= 2) sound.playSE("combo");
+}
+function comboMultiplier() {
+  return 1 + Math.min(Math.max(state.combo - 1, 0), 25) * 0.12;
+}
+
+function damageBrick(brick, source) {
+  let dmg = 1;
+  if (source === "ball" && state.equippedBall === "ball_fire") dmg = 2;
+  brick.hp -= dmg;
   brick.hitAnim = 1.0;
-  const pts = (brick.type === "gold" ? 300 : 10);
+  registerCombo();
+  let pts = brick.type === "gold" ? 300 : 10;
+  if (source === "ball" && state.equippedBall === "ball_ice") pts += 25;
+  pts = Math.floor(pts * comboMultiplier());
+  if (state.combo >= 2) pts += state.combo * 5;
   state.score += pts;
-  addFloatingText(brick.x + brick.width / 2, brick.y, `+${pts}`, brick.color);
+  addFloatingText(brick.x + brick.width / 2, brick.y, `+${pts}${state.combo >= 2 ? " x" + state.combo : ""}`, brick.color);
+
+  if (source === "ball" && state.equippedBall === "ball_plasma") {
+    for (const other of bricks) {
+      if (!other.alive || other === brick) continue;
+      const near = Math.abs((other.x + other.width / 2) - (brick.x + brick.width / 2)) < 90 && Math.abs((other.y + other.height / 2) - (brick.y + brick.height / 2)) < 40;
+      if (near) {
+        other.hp -= 1;
+        other.hitAnim = 1;
+        if (other.hp <= 0) { other.alive = false; createExplosion(other.x + other.width / 2, other.y + other.height / 2, other.color, 10, false); }
+        else if (other.hp === 2) other.color = COLORS.pink;
+        else if (other.hp === 1) other.color = COLORS.blue;
+      }
+    }
+  }
 
   if (brick.hp > 0) {
     if (brick.hp === 2) brick.color = COLORS.pink;
@@ -651,27 +872,29 @@ function damageBrick(brick) {
     if (DOM.shake.checked) state.screenShake = 2;
     return;
   }
-
   brick.alive = false;
-  const isHard = (brick.type === "hardcore" || brick.type === "durable");
+  const isHard = brick.type === "hardcore" || brick.type === "durable";
   createExplosion(brick.x + brick.width / 2, brick.y + brick.height / 2, brick.color, isHard ? 22 : 14, isHard);
   if (DOM.shake.checked) state.screenShake = isHard ? 7 : 4;
   sound.playSE(isHard ? "break_hard" : "break");
-
   if (brick.type === "speed") {
-    balls.forEach(ball => {
-      ball.speedMultiplier = 1.6;
-      setTimeout(() => { if (ball) ball.speedMultiplier = 1; }, 4000);
-    });
+    balls.forEach(ball => { ball.speedMultiplier = 1.6; setTimeout(() => { if (ball) ball.speedMultiplier = 1; }, 4000); });
     addFloatingText(brick.x + brick.width / 2, brick.y - 15, "SPEED UP!!", COLORS.yellow);
   }
-  if (brick.type === "blind") {
-    state.blindTimer = 3500;
-  }
+  if (brick.type === "blind") state.blindTimer = 3500;
   dropItem(brick.x + brick.width / 2, brick.y + brick.height / 2);
 }
 
-function allBricksDestroyed() { return !bricks.some(brick => brick.alive); }
+function allBricksDestroyed() { return !bricks.some(b => b.alive); }
+function parTimeFor(stage) { return 40 + stage * 6; }
+function applyClearTimeScore() {
+  const par = parTimeFor(state.currentStage);
+  const diff = par - state.elapsed;
+  let bonus = Math.floor(diff * 18);
+  if (state.mode === "timeAttack") bonus = Math.floor(Math.max(0, TIME_ATTACK_LIMIT - state.elapsed) * 25);
+  state.lastTimeBonus = bonus;
+  state.score = Math.max(0, state.score + bonus);
+}
 
 function updatePaddle(delta) {
   if (input.keyboardActive || input.left || input.right) {
@@ -682,7 +905,6 @@ function updatePaddle(delta) {
   }
   paddle.x = Math.max(0, Math.min(GAME_WIDTH - paddle.width, paddle.x));
 }
-
 function updateBalls(delta) {
   for (let i = balls.length - 1; i >= 0; i--) {
     const ball = balls[i];
@@ -690,60 +912,53 @@ function updateBalls(delta) {
     const multiplier = ball.speedMultiplier;
     ball.x += ball.vx * multiplier * delta * 60;
     ball.y += ball.vy * multiplier * delta * 60;
-
-    particles.push({
-      x: ball.x, y: ball.y,
-      vx: 0, vy: 0,
-      radius: ball.radius * (0.7 + multiplier * 0.15),
-      color: multiplier > 1.2 ? COLORS.yellow : COLORS.accent,
-      alpha: 0.5,
-      decay: 0.06 * multiplier,
-      shape: "circle"
-    });
-
+    const trail = ball.skin === "ball_fire" ? COLORS.fire : ball.skin === "ball_ice" ? COLORS.ice : ball.skin === "ball_plasma" ? COLORS.purple : ball.skin === "ball_void" ? "#8844ff" : (multiplier > 1.2 ? COLORS.yellow : COLORS.accent);
+    particles.push({ x: ball.x, y: ball.y, vx: 0, vy: 0, radius: ball.radius * 0.85, color: trail, alpha: 0.45, decay: 0.07, shape: "circle" });
     if (ball.x - ball.radius < 0) { ball.x = ball.radius; ball.vx *= -1; sound.playSE("bounce"); }
     if (ball.x + ball.radius > GAME_WIDTH) { ball.x = GAME_WIDTH - ball.radius; ball.vx *= -1; sound.playSE("bounce"); }
     if (ball.y - ball.radius < 0) { ball.y = ball.radius; ball.vy *= -1; sound.playSE("bounce"); }
-
     if (ball.y - ball.radius > GAME_HEIGHT) {
       const lastX = ball.x;
       balls.splice(i, 1);
       sound.playSE("lost_ball");
-      
       if (balls.length === 0 && !stickyBall) {
         createExplosion(lastX, GAME_HEIGHT - 10, COLORS.danger, 25, true);
         state.lives--;
         state.flashTimer = 0.5;
+        state.combo = 0;
         if (DOM.shake.checked) state.screenShake = 9;
         addFloatingText(GAME_WIDTH / 2, GAME_HEIGHT - 60, "- LOST LIFE -", COLORS.danger);
         if (state.lives <= 0) { finishGame(false); return; }
       }
       continue;
     }
-
     if (ball.vy > 0 && ball.x > paddle.x && ball.x < paddle.x + paddle.width && ball.y + ball.radius > paddle.y && ball.y - ball.radius < paddle.y + paddle.height) {
       ball.y = paddle.y - ball.radius;
       const relative = (ball.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
       const currentSpeed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2);
       ball.vx = relative * 5.5;
-      const vertical = Math.sqrt(Math.max(1, currentSpeed ** 2 - ball.vx ** 2));
-      ball.vy = -vertical;
+      ball.vy = -Math.sqrt(Math.max(1, currentSpeed ** 2 - ball.vx ** 2));
+      if (ball.skin === "ball_void") ball.pierce = 1;
       sound.playSE("paddle");
     }
-
     for (const brick of bricks) {
       if (!brick.alive) continue;
       const collision = ball.x + ball.radius > brick.x && ball.x - ball.radius < brick.x + brick.width && ball.y + ball.radius > brick.y && ball.y - ball.radius < brick.y + brick.height;
       if (!collision) continue;
       const previousX = ball.x - ball.vx * multiplier;
       const previousY = ball.y - ball.vy * multiplier;
-      if (previousX + ball.radius <= brick.x || previousX - ball.radius >= brick.x + brick.width) { ball.vx *= -1; } else { ball.vy *= -1; }
-      damageBrick(brick);
+      const canPierce = ball.pierce > 0;
+      if (!canPierce) {
+        if (previousX + ball.radius <= brick.x || previousX - ball.radius >= brick.x + brick.width) ball.vx *= -1;
+        else ball.vy *= -1;
+      } else {
+        ball.pierce -= 1;
+      }
+      damageBrick(brick, "ball");
       break;
     }
   }
 }
-
 function updateLasers(delta) {
   if (paddle.laserTimer > 0) {
     paddle.laserTimer -= delta * 1000;
@@ -755,87 +970,61 @@ function updateLasers(delta) {
       sound.playSE("laser");
     }
   }
-  if (activeBuffs.expand > 0) {
-    activeBuffs.expand -= delta * 1000;
-    if (activeBuffs.expand <= 0) paddle.width = paddle.baseWidth;
-  }
+  if (activeBuffs.expand > 0) { activeBuffs.expand -= delta * 1000; if (activeBuffs.expand <= 0) paddle.width = paddle.baseWidth; }
   if (activeBuffs.laser > 0) activeBuffs.laser -= delta * 1000;
-
   for (let i = lasers.length - 1; i >= 0; i--) {
     const laser = lasers[i];
     laser.y += laser.vy * delta;
     if (laser.y < 0 || laser.y > GAME_HEIGHT) { lasers.splice(i, 1); continue; }
     for (const brick of bricks) {
       if (!brick.alive) continue;
-      const hit = laser.x > brick.x && laser.x < brick.x + brick.width && laser.y > brick.y && laser.y < brick.y + brick.height;
-      if (hit) { damageBrick(brick); lasers.splice(i, 1); break; }
+      if (laser.x > brick.x && laser.x < brick.x + brick.width && laser.y > brick.y && laser.y < brick.y + brick.height) {
+        damageBrick(brick, "laser"); lasers.splice(i, 1); break;
+      }
     }
   }
 }
-
 function updateItems(delta) {
   for (let i = items.length - 1; i >= 0; i--) {
     const item = items[i];
     item.y += item.speed * delta;
     if (item.y > GAME_HEIGHT) { items.splice(i, 1); continue; }
-    const caught = item.y + item.height > paddle.y && item.x + item.width > paddle.x && item.x < paddle.x + paddle.width;
-    if (caught) { applyPowerUp(item.type); items.splice(i, 1); }
+    if (item.y + item.height > paddle.y && item.x + item.width > paddle.x && item.x < paddle.x + paddle.width) {
+      applyPowerUp(item.type); items.splice(i, 1);
+    }
   }
 }
-
 function updateParticles(delta) {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.x += p.vx * delta * 60;
-    p.y += p.vy * delta * 60;
-    p.alpha -= p.decay * delta * 60;
+    p.x += p.vx * delta * 60; p.y += p.vy * delta * 60; p.alpha -= p.decay * delta * 60;
     if (p.isRing) p.radius += (p.maxRadius - p.radius) * 0.2 * delta * 60;
     if (p.alpha <= 0) particles.splice(i, 1);
   }
   for (let i = floatingTexts.length - 1; i >= 0; i--) {
     const ft = floatingTexts[i];
-    ft.y += ft.vy * delta * 60;
-    ft.alpha -= 0.02 * delta * 60;
+    ft.y += ft.vy * delta * 60; ft.alpha -= 0.02 * delta * 60;
     if (ft.alpha <= 0) floatingTexts.splice(i, 1);
   }
-  for (const brick of bricks) {
-    if (brick.hitAnim > 0) brick.hitAnim -= delta * 5;
-  }
+  for (const brick of bricks) if (brick.hitAnim > 0) brick.hitAnim -= delta * 5;
 }
 
-// ===== 画面全体の波紋（ゲーム状態に関係なく常に更新・描画） =====
 function resizeRippleCanvas() {
   const dpr = window.devicePixelRatio || 1;
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  DOM.rippleCanvas.width = Math.round(w * dpr);
-  DOM.rippleCanvas.height = Math.round(h * dpr);
+  DOM.rippleCanvas.width = Math.round(window.innerWidth * dpr);
+  DOM.rippleCanvas.height = Math.round(window.innerHeight * dpr);
   rippleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-
 function spawnRipple(clientX, clientY) {
-  ripples.push({
-    x: clientX,
-    y: clientY,
-    radius: 5,
-    maxRadius: RIPPLE_MAX_RADIUS,
-    speed: 3.5,
-    alpha: 0.9,
-    decay: 0.025
-  });
+  ripples.push({ x: clientX, y: clientY, radius: 5, maxRadius: RIPPLE_MAX_RADIUS, speed: 3.5, alpha: 0.9, decay: 0.025 });
 }
-
 function updateRipples(delta) {
   for (let i = ripples.length - 1; i >= 0; i--) {
     const r = ripples[i];
-    r.radius += r.speed * delta * 60;
-    r.alpha -= r.decay * delta * 60;
-    if (r.alpha <= 0 || r.radius > r.maxRadius) {
-      ripples.splice(i, 1);
-    }
+    r.radius += r.speed * delta * 60; r.alpha -= r.decay * delta * 60;
+    if (r.alpha <= 0 || r.radius > r.maxRadius) ripples.splice(i, 1);
   }
 }
-
 function drawRipples() {
   rippleCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   for (const r of ripples) {
@@ -843,14 +1032,9 @@ function drawRipples() {
     rippleCtx.globalAlpha = Math.max(0, r.alpha);
     rippleCtx.strokeStyle = COLORS.accent;
     rippleCtx.lineWidth = 1.5;
-    // 重ね合わせた同心円（波紋のゆらぎ）
     for (let j = 0; j < 3; j++) {
       const currentRadius = Math.max(0, r.radius - j * 10);
-      if (currentRadius > 0) {
-        rippleCtx.beginPath();
-        rippleCtx.arc(r.x, r.y, currentRadius, 0, Math.PI * 2);
-        rippleCtx.stroke();
-      }
+      if (currentRadius > 0) { rippleCtx.beginPath(); rippleCtx.arc(r.x, r.y, currentRadius, 0, Math.PI * 2); rippleCtx.stroke(); }
     }
     rippleCtx.restore();
   }
@@ -858,42 +1042,58 @@ function drawRipples() {
 
 function update(delta) {
   if (!state.playing || state.paused) return;
+  state.elapsed += delta;
+  if (state.comboTimer > 0) {
+    state.comboTimer -= delta;
+    if (state.comboTimer <= 0) state.combo = 0;
+  }
+  if (state.mode === "timeAttack" && state.elapsed >= TIME_ATTACK_LIMIT) { finishGame(false); return; }
   if (state.screenShake > 0) state.screenShake = Math.max(0, state.screenShake - delta * 12);
   if (state.blindTimer > 0) state.blindTimer -= delta * 1000;
   if (state.flashTimer > 0) state.flashTimer -= delta;
   updatePaddle(delta);
-  if (stickyBall && balls.length > 0) { balls[0].x = paddle.x + paddle.width / 2; balls[0].y = paddle.y - balls[0].radius; }
-  updateLasers(delta);
-  updateBalls(delta);
-  updateItems(delta);
-  updateParticles(delta);
-
+  if (stickyBall && balls[0]) { balls[0].x = paddle.x + paddle.width / 2; balls[0].y = paddle.y - balls[0].radius; }
+  updateLasers(delta); updateBalls(delta); updateItems(delta); updateParticles(delta);
   if (balls.length === 0 && !stickyBall && state.lives > 0) {
-    paddle.width = paddle.baseWidth;
-    paddle.laserTimer = 0;
-    activeBuffs.expand = 0;
-    activeBuffs.laser = 0;
-    resetBall();
+    paddle.width = paddle.baseWidth; paddle.laserTimer = 0; activeBuffs.expand = 0; activeBuffs.laser = 0; resetBall();
   }
   if (allBricksDestroyed()) finishGame(true);
 }
 
 function finishGame(won) {
   if (!state.playing) return;
-  state.playing = false;
-  state.paused = false;
-  sound.stopBGM();
+  state.playing = false; state.paused = false; sound.stopBGM();
+  if (won) applyClearTimeScore();
+  const gained = Math.floor(state.score / 10);
+  state.lastBGain = gained;
+  state.bPoints += gained;
+  if (state.bPoints >= 1000) unlockAchievement("rich");
+  if (state.score >= 8000) unlockAchievement("score_8k");
   if (state.score > state.highScore) state.highScore = state.score;
+  const timeLine = `タイム: <span class="highlight">${state.elapsed.toFixed(1)}s</span> / タイム補正: <span class="highlight">${state.lastTimeBonus >= 0 ? "+" : ""}${won ? state.lastTimeBonus : 0}</span>`;
+  const comboLine = `最大コンボ: <span class="highlight">${state.maxCombo}</span>`;
+  const bpLine = `Bポイント +<span class="highlight">${gained}</span>（スコアの1/10）`;
   if (won) {
     sound.playSE("clear");
     DOM.resultTitle.textContent = "STAGE CLEAR!";
     DOM.resultTitle.style.color = COLORS.accent;
-    DOM.resultText.innerHTML = `おめでとうございます！<br>ステージ ${state.currentStage} を突破しました。<br><br>獲得スコア:<span class="highlight">${state.score}</span>`;
-    if (state.currentStage === state.unlockedStage && state.unlockedStage < TOTAL_STAGES) state.unlockedStage++;
-    if (state.currentStage === TOTAL_STAGES) state.clearedCount++;
-    if (state.currentStage < TOTAL_STAGES) {
+    DOM.resultText.innerHTML = `ステージ ${state.currentStage} クリア！<br>獲得スコア:<span class="highlight">${state.score}</span><br>${timeLine}<br>${comboLine}<br>${bpLine}`;
+    if (state.mode === "story") {
+      if (state.currentStage === state.unlockedStage && state.unlockedStage < BASE_STAGES) state.unlockedStage++;
+      if (state.currentStage === BASE_STAGES) state.clearedCount++;
+      if (state.currentStage > BASE_STAGES) state.achievements["pack_stage_" + state.currentStage] = true;
+      unlockAchievement("first_clear");
+      if (state.currentStage >= 10) unlockAchievement("stage_10");
+      if (state.currentStage >= 20) unlockAchievement("stage_20");
+    }
+    if (state.mode === "oneLife") unlockAchievement("one_life");
+    if (state.mode === "timeAttack") unlockAchievement("time_gold");
+    if (state.mode === "story" && getStageConfig(state.currentStage + 1)) {
       DOM.resultAction.style.display = "block";
       DOM.resultAction.textContent = "次のステージへ";
+    } else if (state.mode !== "story") {
+      DOM.resultAction.style.display = "block";
+      DOM.resultAction.textContent = "もう一度挑戦";
     } else {
       DOM.resultAction.style.display = "none";
     }
@@ -901,28 +1101,31 @@ function finishGame(won) {
     sound.playSE("gameover");
     DOM.resultTitle.textContent = "GAME OVER";
     DOM.resultTitle.style.color = COLORS.danger;
-    DOM.resultText.innerHTML = `パドルが破壊されました。<br><br>最終スコア:<span class="highlight">${state.score}</span>`;
+    DOM.resultText.innerHTML = `敗北。<br>最終スコア:<span class="highlight">${state.score}</span><br>${timeLine}<br>${comboLine}<br>${bpLine}`;
     DOM.resultAction.style.display = "block";
     DOM.resultAction.textContent = "もう一度挑戦";
   }
+  const modeLabel = state.mode === "oneLife" ? "1LIFE" : state.mode === "timeAttack" ? "TIME ATTACK" : "STAGE";
+  state.lastShareText = `Retro Brick Breaker で ${modeLabel} ${state.currentStage} をプレイ！ スコア ${state.score} / コンボ ${state.maxCombo} / タイム ${state.elapsed.toFixed(1)}s #RetroBrickBreaker`;
   saveGameData();
   updateHomeHUD();
   DOM.resultModal.classList.add("active");
 }
-
 function setPaused(paused) {
   if (!state.playing) return;
   state.paused = paused;
-  if (paused) {
-    sound.stopBGM();
-    DOM.pauseModal.classList.add("active");
-  } else {
-    DOM.pauseModal.classList.remove("active");
-    DOM.configModal.classList.remove("active");
-    sound.startBGM();
-  }
+  if (paused) { sound.stopBGM(); DOM.pauseModal.classList.add("active"); }
+  else { DOM.pauseModal.classList.remove("active"); DOM.configModal.classList.remove("active"); sound.startBGM(); }
 }
 
+function paddleColors() {
+  switch (state.equippedPaddle) {
+    case "paddle_neon": return { body: "#041e1c", accent: COLORS.accent, edge: COLORS.accent };
+    case "paddle_gold": return { body: "#7a5a00", accent: COLORS.gold, edge: "#fff3a0" };
+    case "paddle_energy": return { body: "#1a0530", accent: COLORS.purple, edge: COLORS.pink };
+    default: return { body: COLORS.white, accent: COLORS.accent, edge: COLORS.white };
+  }
+}
 function drawBricks() {
   for (const brick of bricks) {
     if (!brick.alive) continue;
@@ -938,7 +1141,6 @@ function drawBricks() {
     ctx.strokeStyle = "rgba(255,255,255,0.3)";
     ctx.lineWidth = 2;
     ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
-
     if (brick.hp > 1) {
       ctx.fillStyle = "rgba(0,0,0,0.35)";
       ctx.font = "bold 10px 'Courier New'";
@@ -949,361 +1151,244 @@ function drawBricks() {
     ctx.restore();
   }
 }
-
 function drawPaddle() {
-  ctx.fillStyle = paddle.laserTimer > 0 ? COLORS.danger : COLORS.white;
+  const c = paddleColors();
+  const glow = paddle.laserTimer > 0;
+  ctx.fillStyle = glow ? COLORS.danger : c.body;
   ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
-  ctx.fillStyle = COLORS.accent;
+  ctx.fillStyle = c.accent;
   ctx.fillRect(paddle.x + 4, paddle.y + 3, paddle.width - 8, 3);
-  if (paddle.laserTimer > 0) {
+  ctx.fillStyle = c.edge;
+  ctx.fillRect(paddle.x, paddle.y, 4, paddle.height);
+  ctx.fillRect(paddle.x + paddle.width - 4, paddle.y, 4, paddle.height);
+  if (glow) {
     ctx.fillStyle = COLORS.danger;
     ctx.fillRect(paddle.x, paddle.y - 6, 6, 8);
     ctx.fillRect(paddle.x + paddle.width - 6, paddle.y - 6, 6, 8);
   }
 }
-
 function drawBalls() {
-  ctx.fillStyle = COLORS.white;
   for (const ball of balls) {
+    const g = ctx.createRadialGradient(ball.x - 2, ball.y - 2, 1, ball.x, ball.y, ball.radius);
+    if (ball.skin === "ball_fire") { g.addColorStop(0, "#fff2b0"); g.addColorStop(0.45, "#ff6a00"); g.addColorStop(1, "#7a0000"); }
+    else if (ball.skin === "ball_ice") { g.addColorStop(0, "#ffffff"); g.addColorStop(0.5, COLORS.ice); g.addColorStop(1, "#1a4d88"); }
+    else if (ball.skin === "ball_plasma") { g.addColorStop(0, "#ffccff"); g.addColorStop(0.5, COLORS.purple); g.addColorStop(1, "#220044"); }
+    else if (ball.skin === "ball_void") { g.addColorStop(0, "#ddaaff"); g.addColorStop(0.5, "#5500aa"); g.addColorStop(1, "#090014"); }
+    else { g.addColorStop(0, "#ffffff"); g.addColorStop(1, COLORS.accent); }
+    ctx.fillStyle = g;
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fill();
   }
 }
-
-function drawLasers() {
-  ctx.fillStyle = COLORS.danger;
-  for (const laser of lasers) { ctx.fillRect(laser.x - 1, laser.y, 3, 12); }
-}
-
+function drawLasers() { ctx.fillStyle = COLORS.danger; for (const laser of lasers) ctx.fillRect(laser.x - 1, laser.y, 3, 12); }
 function drawItems() {
   for (const item of items) {
-    ctx.fillStyle = item.color;
-    ctx.fillRect(item.x, item.y, item.width, item.height);
-    ctx.strokeStyle = COLORS.white;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(item.x, item.y, item.width, item.height);
+    ctx.fillStyle = item.color; ctx.fillRect(item.x, item.y, item.width, item.height);
+    ctx.strokeStyle = COLORS.white; ctx.lineWidth = 1; ctx.strokeRect(item.x, item.y, item.width, item.height);
   }
 }
-
 function drawParticles() {
   for (const p of particles) {
-    ctx.save();
-    ctx.globalAlpha = p.alpha;
-    if (p.isRing) {
-      ctx.strokeStyle = p.color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      ctx.stroke();
-    } else {
+    ctx.save(); ctx.globalAlpha = p.alpha;
+    if (p.isRing) { ctx.strokeStyle = p.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.stroke(); }
+    else {
       ctx.fillStyle = p.color;
-      if (p.shape === "rect") {
-        ctx.fillRect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
-      } else {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      if (p.shape === "rect") ctx.fillRect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
+      else { ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill(); }
     }
     ctx.restore();
   }
-
   for (const ft of floatingTexts) {
-    ctx.save();
-    ctx.globalAlpha = ft.alpha;
-    ctx.fillStyle = ft.color;
-    ctx.font = "bold 14px 'Courier New'";
-    ctx.textAlign = "center";
-    ctx.fillText(ft.text, ft.x, ft.y);
-    ctx.restore();
+    ctx.save(); ctx.globalAlpha = ft.alpha; ctx.fillStyle = ft.color;
+    ctx.font = "bold 14px 'Courier New'"; ctx.textAlign = "center"; ctx.fillText(ft.text, ft.x, ft.y); ctx.restore();
   }
 }
-
 function drawHUD() {
-  ctx.fillStyle = COLORS.white;
-  ctx.font = "14px 'Courier New'";
-  ctx.textAlign = "left";
+  ctx.fillStyle = COLORS.white; ctx.font = "14px 'Courier New'"; ctx.textAlign = "left";
   ctx.fillText(`STAGE: ${state.currentStage}`, 25, 30);
   ctx.fillText(`SCORE: ${state.score}`, 150, 30);
-  ctx.fillText("LIVES:", 580, 30);
-  for (let i = 0; i < 3; i++) {
-    ctx.fillStyle = i < state.lives ? COLORS.accent : "#2d3142";
-    ctx.fillRect(640 + i * 18, 18, 12, 14);
+  if (state.mode === "timeAttack") {
+    const left = Math.max(0, TIME_ATTACK_LIMIT - state.elapsed);
+    ctx.fillStyle = left < 10 ? COLORS.danger : COLORS.yellow;
+    ctx.fillText(`TIME: ${left.toFixed(1)}`, 330, 30);
+  } else {
+    ctx.fillText(`TIME: ${state.elapsed.toFixed(1)}`, 330, 30);
   }
-
-  let buffY = 55;
-  if (activeBuffs.expand > 0) {
-    drawBuffStatus("EXPAND", activeBuffs.expand, 8000, "#00ff00", buffY);
-    buffY += 22;
-  }
-  if (activeBuffs.laser > 0) {
-    drawBuffStatus("LASER", activeBuffs.laser, 6000, COLORS.danger, buffY);
-    buffY += 22;
-  }
-  if (balls.length > 1) {
-    drawBuffStatus(`BALLS x${balls.length}`, 1, 1, COLORS.blue, buffY);
-  }
-}
-
-function drawBuffStatus(name, current, max, color, yPos) {
-  const boxWidth = 110;
-  const boxHeight = 16;
-  const boxX = GAME_WIDTH - boxWidth - 25;
-  ctx.fillStyle = "rgba(26,28,41,0.85)";
-  ctx.fillRect(boxX, yPos, boxWidth, boxHeight);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(boxX, yPos, boxWidth, boxHeight);
-
-  if (max > 1) {
-    const ratio = Math.max(0, Math.min(1, current / max));
-    ctx.fillStyle = color;
-    ctx.fillRect(boxX, yPos, boxWidth * ratio, boxHeight);
-  }
-
   ctx.fillStyle = COLORS.white;
-  ctx.font = "10px 'Courier New'";
-  ctx.textAlign = "center";
-  ctx.fillText(`${name}`, boxX + boxWidth / 2, yPos + 12);
-  ctx.textAlign = "left";
+  ctx.fillText("LIVES:", 520, 30);
+  const lifeMax = state.mode === "oneLife" ? 1 : 3;
+  for (let i = 0; i < lifeMax; i++) {
+    ctx.fillStyle = i < state.lives ? COLORS.accent : "#2d3142";
+    ctx.fillRect(580 + i * 18, 18, 12, 14);
+  }
+  if (state.combo >= 2) {
+    ctx.fillStyle = COLORS.gold;
+    ctx.font = "bold 16px 'Courier New'";
+    ctx.fillText(`COMBO x${state.combo}`, 25, 52);
+  }
+  let buffY = 55;
+  if (activeBuffs.expand > 0) { drawBuffStatus("EXPAND", activeBuffs.expand, 8000, "#00ff00", buffY); buffY += 22; }
+  if (activeBuffs.laser > 0) { drawBuffStatus("LASER", activeBuffs.laser, 6000, COLORS.danger, buffY); buffY += 22; }
+  if (balls.length > 1) drawBuffStatus(`BALLS x${balls.length}`, 1, 1, COLORS.blue, buffY);
 }
-
+function drawBuffStatus(name, current, max, color, yPos) {
+  const boxWidth = 110, boxHeight = 16, boxX = GAME_WIDTH - boxWidth - 25;
+  ctx.fillStyle = "rgba(26,28,41,0.85)"; ctx.fillRect(boxX, yPos, boxWidth, boxHeight);
+  ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.strokeRect(boxX, yPos, boxWidth, boxHeight);
+  if (max > 1) { ctx.fillStyle = color; ctx.fillRect(boxX, yPos, boxWidth * Math.max(0, Math.min(1, current / max)), boxHeight); }
+  ctx.fillStyle = COLORS.white; ctx.font = "10px 'Courier New'"; ctx.textAlign = "center";
+  ctx.fillText(name, boxX + boxWidth / 2, yPos + 12); ctx.textAlign = "left";
+}
 function drawInstructions() {
   if (!stickyBall || !state.playing) return;
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.font = "16px 'Courier New'";
-  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = "16px 'Courier New'"; ctx.textAlign = "center";
   const isMobileMatch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-  if (isMobileMatch) {
-    ctx.fillText("「発射」ボタンをタップしてボールを発射", GAME_WIDTH / 2, 400);
-  } else {
-    ctx.fillText("クリック / スペースキーでボールを発射", GAME_WIDTH / 2, 400);
-  }
+  ctx.fillText(isMobileMatch ? "「発射」ボタンをタップしてボールを発射" : "クリック / スペースキーでボールを発射", GAME_WIDTH / 2, 400);
   ctx.textAlign = "left";
 }
-
 function draw() {
   ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
   ctx.save();
-  if (state.screenShake > 0) {
-    const dx = (Math.random() - 0.5) * state.screenShake * 1.5;
-    const dy = (Math.random() - 0.5) * state.screenShake * 1.5;
-    ctx.translate(dx, dy);
-  }
-  drawBricks();
-  drawPaddle();
-  drawLasers();
-  drawBalls();
-  drawItems();
-  drawParticles();
-  drawHUD();
-  drawInstructions();
-
-  if (state.flashTimer > 0) {
-    ctx.fillStyle = `rgba(255,74,90,${state.flashTimer * 1.2})`;
-    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-  }
-
+  if (state.screenShake > 0) ctx.translate((Math.random() - 0.5) * state.screenShake * 1.5, (Math.random() - 0.5) * state.screenShake * 1.5);
+  drawBricks(); drawPaddle(); drawLasers(); drawBalls(); drawItems(); drawParticles(); drawHUD(); drawInstructions();
+  if (state.flashTimer > 0) { ctx.fillStyle = `rgba(255,74,90,${state.flashTimer * 1.2})`; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT); }
   if (state.blindTimer > 0) {
-    ctx.fillStyle = "rgba(0,0,0,0.85)";
-    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-    ctx.fillStyle = COLORS.accent;
-    ctx.font = "18px 'Courier New'";
-    ctx.textAlign = "center";
-    ctx.fillText("【ブラインド発動中】視界不良！", GAME_WIDTH / 2, 300);
-    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.fillStyle = COLORS.accent; ctx.font = "18px 'Courier New'"; ctx.textAlign = "center";
+    ctx.fillText("【ブラインド発動中】視界不良！", GAME_WIDTH / 2, 300); ctx.textAlign = "left";
   }
   ctx.restore();
 }
-
 function gameLoop(timestamp) {
-  if (!state.lastTime) { state.lastTime = timestamp; }
+  if (!state.lastTime) state.lastTime = timestamp;
   let delta = (timestamp - state.lastTime) / 1000;
   state.lastTime = timestamp;
   delta = Math.min(delta, 0.033);
-
-  update(delta);
-  draw();
-
-  // 波紋はゲームの状態（ポーズ中・ホーム画面など）に関係なく常に動かす
-  updateRipples(delta);
-  drawRipples();
-
+  update(delta); draw(); updateRipples(delta); drawRipples();
   requestAnimationFrame(gameLoop);
 }
 
-function checkOrientation() {
-  const warning = $("rotate-warning");
-  if (window.innerHeight > window.innerWidth && window.innerWidth <= 820) {
-    warning.classList.add("show");
-  } else {
-    warning.classList.remove("show");
-  }
-}
-
-window.addEventListener("resize", () => {
-  checkOrientation();
-  resizeRippleCanvas();
-});
+window.addEventListener("resize", resizeRippleCanvas);
 window.addEventListener("load", () => {
-  checkOrientation();
-  resizeRippleCanvas();
-  loadGameData();
-  renderStageGrid();
-  updateVolumeLabels();
+  resizeRippleCanvas(); loadGameData(); renderStageGrid(); renderShop(); renderAchievements(); renderPacks(); updateVolumeLabels();
   requestAnimationFrame(gameLoop);
 });
 
 window.addEventListener("keydown", event => {
   const key = event.key.toLowerCase();
-  if (["arrowleft", "arrowright", "a", "d", " ", "escape", "p"].includes(key)) { event.preventDefault(); }
+  if (["arrowleft", "arrowright", "a", "d", " ", "escape", "p"].includes(key)) event.preventDefault();
   if (key === "arrowleft" || key === "a") { input.left = true; input.keyboardActive = true; }
   if (key === "arrowright" || key === "d") { input.right = true; input.keyboardActive = true; }
-  if (key === " " && state.playing && !state.paused && stickyBall) { launchBall(); }
-  if (key === "escape" || key === "p") {
-    if (state.playing && !DOM.resultModal.classList.contains("active") && !DOM.configModal.classList.contains("active")) {
-      setPaused(!state.paused);
-    }
-  }
+  if (key === " " && state.playing && !state.paused && stickyBall) launchBall();
+  if ((key === "escape" || key === "p") && state.playing && !DOM.resultModal.classList.contains("active") && !DOM.configModal.classList.contains("active")) setPaused(!state.paused);
 });
 window.addEventListener("keyup", event => {
   const key = event.key.toLowerCase();
-  if (key === "arrowleft" || key === "a") { input.left = false; }
-  if (key === "arrowright" || key === "d") { input.right = false; }
+  if (key === "arrowleft" || key === "a") input.left = false;
+  if (key === "arrowright" || key === "d") input.right = false;
 });
 
 function updatePointerPosition(event) {
   const rect = DOM.canvas.getBoundingClientRect();
   const scaleX = GAME_WIDTH / rect.width;
-  let x = (event.clientX - rect.left) * scaleX;
-  x = Math.max(0, Math.min(GAME_WIDTH, x));
-  input.pointerX = x;
+  input.pointerX = Math.max(0, Math.min(GAME_WIDTH, (event.clientX - rect.left) * scaleX));
   input.pointerActive = true;
   input.keyboardActive = false;
 }
-
-// 画面をタップ/クリックしたときの処理
-// 波紋は画面全体のオーバーレイに、タップした位置そのままで表示される（枠の外でもOK）
 window.addEventListener("pointerdown", event => {
   const rect = DOM.canvas.getBoundingClientRect();
-
-  // キャンバスの内部・外部を判定
-  const isInsideCanvas = event.clientX >= rect.left && event.clientX <= rect.right &&
-                         event.clientY >= rect.top && event.clientY <= rect.bottom;
-
+  const isInsideCanvas = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
   if (isInsideCanvas) {
     if (RIPPLE_ON_CANVAS_TAP) spawnRipple(event.clientX, event.clientY);
     updatePointerPosition(event);
-    if (state.playing && !state.paused && stickyBall) {
-      launchBall();
-    }
+    if (state.playing && !state.paused && stickyBall) launchBall();
   } else {
-    // 枠外タップ：タップした位置にそのまま波紋を発生
     spawnRipple(event.clientX, event.clientY);
-
-    // 枠外の右側 / 左側の判定によるパドル移動
     const screenCenterX = rect.left + rect.width / 2;
-    if (event.clientX > screenCenterX) {
-      input.right = true;
-      input.left = false;
-    } else {
-      input.left = true;
-      input.right = false;
-    }
+    input.right = event.clientX > screenCenterX;
+    input.left = !input.right;
     input.pointerActive = false;
   }
 });
-
 window.addEventListener("pointerup", event => {
-  // 枠外タッチが離されたら左右移動を停止
   const rect = DOM.canvas.getBoundingClientRect();
-  const isInsideCanvas = event.clientX >= rect.left && event.clientX <= rect.right &&
-                         event.clientY >= rect.top && event.clientY <= rect.bottom;
-  if (!isInsideCanvas) {
-    input.left = false;
-    input.right = false;
-  }
+  const isInsideCanvas = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+  if (!isInsideCanvas) { input.left = false; input.right = false; }
 });
-
-DOM.canvas.addEventListener("pointermove", event => {
-  event.preventDefault();
-  updatePointerPosition(event); 
-});
+DOM.canvas.addEventListener("pointermove", event => { event.preventDefault(); updatePointerPosition(event); });
 
 function launchBall() {
   if (!state.playing || state.paused || !stickyBall) return;
-  sound.init();
-  stickyBall = false;
-  sound.playSE("paddle");
+  sound.init(); stickyBall = false; sound.playSE("paddle");
 }
-
 $("btn-launch-mobile").addEventListener("pointerdown", event => {
-  event.preventDefault();
-  event.stopPropagation();
-  if (state.playing && !state.paused && stickyBall) {
-    launchBall();
-  }
+  event.preventDefault(); event.stopPropagation();
+  if (state.playing && !state.paused && stickyBall) launchBall();
 });
 
-$("btn-hud-pause").addEventListener("click", () => { setPaused(!state.paused); });
-$("btn-hud-config").addEventListener("click", () => { 
-  state.configSource = "game"; 
-  setPaused(true); 
-  DOM.pauseModal.classList.remove("active"); 
-  DOM.configModal.classList.add("active"); 
-});
+$("btn-hud-pause").addEventListener("click", () => setPaused(!state.paused));
+$("btn-hud-config").addEventListener("click", () => { state.configSource = "game"; setPaused(true); DOM.pauseModal.classList.remove("active"); DOM.configModal.classList.add("active"); });
 $("btn-home-config").addEventListener("click", () => { sound.init(); state.configSource = "home"; DOM.configModal.classList.add("active"); });
-
 $("btn-config-close").addEventListener("click", () => {
-  DOM.configModal.classList.remove("active");
-  saveGameData();
-  if (state.configSource === "game") {
-    DOM.pauseModal.classList.add("active");
-  } else {
-    updateHomeHUD();
-    renderStageGrid();
-  }
+  DOM.configModal.classList.remove("active"); saveGameData();
+  if (state.configSource === "game") DOM.pauseModal.classList.add("active");
+  else { updateHomeHUD(); renderStageGrid(); }
 });
-
-$("btn-pause-resume").addEventListener("click", () => { setPaused(false); });
+$("btn-pause-resume").addEventListener("click", () => setPaused(false));
 $("btn-pause-retire").addEventListener("click", () => { DOM.pauseModal.classList.remove("active"); finishGame(false); });
 DOM.resultAction.addEventListener("click", () => {
   DOM.resultModal.classList.remove("active");
-  if (DOM.resultAction.textContent === "もう一度挑戦") {
-    startStage(state.currentStage);
-  } else {
-    startStage(state.currentStage + 1);
-  }
+  if (DOM.resultAction.textContent === "もう一度挑戦") startStage(state.currentStage, state.mode);
+  else startStage(state.currentStage + 1, "story");
 });
 $("btn-result-home").addEventListener("click", () => { DOM.resultModal.classList.remove("active"); showHomeScreen(); });
-
+$("btn-share-x").addEventListener("click", () => {
+  const url = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(state.lastShareText || "Retro Brick Breaker をプレイ中！ #RetroBrickBreaker");
+  window.open(url, "_blank", "noopener,noreferrer");
+});
 $("btn-reset-data").addEventListener("click", () => {
-  const confirmed = confirm("ゲームデータを初期化してよろしいですか？\n\nすべてのステージ進行状況がリセットされます。");
-  if (!confirmed) return;
+  if (!confirm("ゲームデータを初期化してよろしいですか？\n\n進行・Bポイント・実績・パックがリセットされます。")) return;
   localStorage.removeItem(SAVE_KEY);
-  state.highScore = 0;
-  state.unlockedStage = 1;
-  state.clearedCount = 0;
-  sound.bgmVolume = 0.5;
-  sound.seVolume = 0.7;
-  DOM.sliderBgm.value = 50;
-  DOM.sliderSe.value = 70;
-  DOM.shake.checked = true;
-  updateVolumeLabels();
-  saveGameData();
-  updateHomeHUD();
-  renderStageGrid();
+  Object.assign(state, { highScore: 0, unlockedStage: 1, clearedCount: 0, bPoints: 0, owned: ["paddle_default", "ball_default"], equippedPaddle: "paddle_default", equippedBall: "ball_default", achievements: {}, installedPacks: [], extraStages: {} });
+  sound.bgmVolume = 0.5; sound.seVolume = 0.7; DOM.sliderBgm.value = 50; DOM.sliderSe.value = 70; DOM.shake.checked = true;
+  updateVolumeLabels(); saveGameData(); updateHomeHUD(); showPanel("stages");
+});
+DOM.sliderBgm.addEventListener("input", () => { sound.setBGMVolume(Number(DOM.sliderBgm.value) / 100); DOM.bgmValue.textContent = `${DOM.sliderBgm.value}%`; });
+DOM.sliderSe.addEventListener("input", () => { sound.setSEVolume(Number(DOM.sliderSe.value) / 100); DOM.seValue.textContent = `${DOM.sliderSe.value}%`; });
+
+$("nav-stages").addEventListener("click", () => showPanel("stages"));
+$("nav-challenge").addEventListener("click", () => showPanel("challenge"));
+$("nav-shop").addEventListener("click", () => showPanel("shop"));
+$("nav-achieve").addEventListener("click", () => showPanel("achieve"));
+$("nav-packs").addEventListener("click", () => showPanel("packs"));
+$("card-onelife").addEventListener("click", () => { sound.init(); startStage(state.challengeStage || 1, "oneLife"); });
+$("card-timeattack").addEventListener("click", () => { sound.init(); startStage(state.challengeStage || 1, "timeAttack"); });
+$("btn-import-pack").addEventListener("click", () => $("pack-file").click());
+$("pack-file").addEventListener("change", event => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const pack = JSON.parse(reader.result);
+      if (!pack.id || !pack.stages) throw new Error("invalid");
+      installPackData(pack);
+    } catch (e) { alert("パックJSONを読み込めませんでした。"); }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
 });
 
-DOM.sliderBgm.addEventListener("input", () => {
-  sound.setBGMVolume(Number(DOM.sliderBgm.value) / 100);
-  DOM.bgmValue.textContent = `${DOM.sliderBgm.value}%`;
-});
-DOM.sliderSe.addEventListener("input", () => {
-  sound.setSEVolume(Number(DOM.sliderSe.value) / 100);
-  DOM.seValue.textContent = `${DOM.sliderSe.value}%`;
-});
+document.addEventListener("gesturestart", e => e.preventDefault());
+document.addEventListener("gesturechange", e => e.preventDefault());
+document.addEventListener("dblclick", e => e.preventDefault());
+let lastTouchEnd = 0;
+document.addEventListener("touchend", event => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 320) event.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
 </script>
 </body>
 </html>
