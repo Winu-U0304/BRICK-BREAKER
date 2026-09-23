@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <!-- saved from url=(0043)https://winu-u0304.github.io/BRICK-BREAKER/ -->
 <html lang="ja" style="--bg-color: #0a0a0a; --panel-color: #1c1c1c; --accent-color: #e0e0e0; --border-color: #3a3a3a;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -287,6 +288,10 @@ input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20
         <p id="packs-cloud-status" class="panel-sub" style="color:var(--accent-color);"></p>
         <div id="pack-grid" class="pack-grid" style="margin-top:12px;"></div>
         <div class="file-row" style="margin-top:16px;">
+          <input id="eternal-code-input" type="text" placeholder="コードを張り付け" style="height:38px;padding:0 10px;border:1px solid var(--border-color);border-radius:4px;background:#0d0e15;color:var(--text-color);font:inherit;">
+          <button id="btn-eternal-unlock" class="menu-btn" type="button">実行</button>
+        </div>
+        <div class="file-row" style="margin-top:16px;">
           <button id="btn-import-pack" class="menu-btn" type="button" data-i18n="importJson">JSONを読み込む</button>
           <input id="pack-file" class="hidden-file" type="file" accept="application/json,.json">
         </div>
@@ -544,11 +549,25 @@ const ETERNAL_PACK = {
   id: "eternal-vault",
   name: "ETERNAL VAULT PACK",
   description: "ステージ26〜45。自動生成される拡張コース群。",
-  priceLabel: "サインインで無料インストール",
-  requiresSignIn: true,
+  priceLabel: "秘密のコードで解放",
+  requiresCode: true,
   stages: buildEternalStages(26, 20)
 };
 const ALL_PACKS = [BUILTIN_PACK, ETERNAL_PACK];
+const ETERNAL_CODE = "BRICKVAULT-77";
+function checkEternalCode() {
+  const input = $("eternal-code-input");
+  const value = (input.value || "").trim().toUpperCase();
+  if (value === ETERNAL_CODE) {
+    state.eternalUnlocked = true;
+    saveGameData();
+    renderPacks();
+    alert("コード一致。ETERNAL VAULT PACK が解放");
+  } else {
+    alert("コードが違います。");
+  }
+  input.value = "";
+}
 
 const SHOP_ITEMS = {
   paddle_default: { id: "paddle_default", kind: "paddle", name: "CLASSIC PADDLE", price: 0, desc: "標準パドル。" },
@@ -684,7 +703,7 @@ const state = {
   playing: false, paused: false, screenShake: 0, configSource: "home", lastTime: 0,
   blindTimer: 0, flashTimer: 0, bPoints: 0, owned: ["paddle_default", "ball_default"],
   equippedPaddle: "paddle_default", equippedBall: "ball_default", achievements: {},
-  installedPacks: [], extraStages: {}, mode: "story", challengeStage: 1,
+  installedPacks: [], extraStages: {}, eternalUnlocked: false, mode: "story", challengeStage: 1,
   elapsed: 0, lastTimeBonus: 0, lastBGain: 0, combo: 0, comboTimer: 0, maxCombo: 0,
   lastShareText: "", equippedTrail: "none", equippedTheme: "none", equippedAccessory: "none",
   totalBricksDestroyed: 0, totalPlays: 0, shieldAvailable: false, comboGuardAvailable: false,
@@ -852,6 +871,7 @@ function loadGameData() {
     state.totalPlays = Number(data.totalPlays) || 0;
     state.achievements = data.achievements || {};
     state.installedPacks = Array.isArray(data.installedPacks) ? data.installedPacks : [];
+    state.eternalUnlocked = !!data.eternalUnlocked;
     state.extraStages = data.extraStages || {};
     state.language = data.language === "en" ? "en" : "ja";
     state.playerName = sanitizePlayerName(data.playerName || "NOVA_07");
@@ -876,7 +896,7 @@ function saveGameData() {
     bPoints: state.bPoints, owned: state.owned, equippedPaddle: state.equippedPaddle, equippedBall: state.equippedBall,
     equippedTrail: state.equippedTrail, equippedTheme: state.equippedTheme, equippedAccessory: state.equippedAccessory,
     totalBricksDestroyed: state.totalBricksDestroyed, totalPlays: state.totalPlays,
-    achievements: state.achievements, installedPacks: state.installedPacks, extraStages: state.extraStages,
+    achievements: state.achievements, installedPacks: state.installedPacks, extraStages: state.extraStages, eternalUnlocked: state.eternalUnlocked,
     language: state.language, playerName: state.playerName, titleRank: state.titleRank, onlineRank: state.onlineRank,
     survivalBestTime: state.survivalBestTime, survivalBestScore: state.survivalBestScore, dailyBestScore: state.dailyBestScore, dailyRank: state.dailyRank,
     bgmVol: sound.bgmVolume, seVol: sound.seVolume, shake: DOM.shake.checked
@@ -1032,18 +1052,18 @@ function renderAchievements() {
 function renderPacks() {
   const host = $("pack-grid");
   const status = $("packs-cloud-status");
-  if (status) status.textContent = cloud.signedIn ? "☁ サインイン済み：進行状況はクラウドに自動保存されます。" : "サインインするとクラウド専用パックが解放され、進行状況が自動保存されます。";
+  if (status) status.textContent = cloud.signedIn ? "☁ サインイン済み：進行状況はクラウドに自動保存されます。" : "サインインすると進行状況が自動でクラウド保存されます（コース解放には別途コードが必要）。";
   host.innerHTML = "";
   ALL_PACKS.forEach(pack => {
     const installed = state.installedPacks.includes(pack.id);
-    const locked = !!pack.requiresSignIn && !cloud.signedIn;
+    const locked = !!pack.requiresCode && !state.eternalUnlocked;
     const card = document.createElement("div");
     card.className = "pack-card" + (installed ? " equipped" : "") + (locked ? " locked" : "");
-    const badge = locked ? "🔒 サインインが必要" : installed ? "導入済" : "追加コース";
-    const action = locked ? "連携でロック解除" : installed ? "JSONダウンロード" : (pack.priceLabel || "インストール");
+    const badge = locked ? "🔒 コードが必要" : installed ? "導入済" : "追加コース";
+    const action = locked ? "Code pasting enabled" : installed ? "JSONダウンロード" : (pack.priceLabel || "インストール");
     card.innerHTML = `<div class="card-badge">${badge}</div><div class="card-name">${pack.name}</div><div class="card-desc">${pack.description}</div><div class="price">${action}</div>`;
     card.addEventListener("click", () => {
-      if (locked) { alert("このパックはサインインした状態で開くと利用できます。進行データはサインイン中のアカウントにクラウド保存されます。"); return; }
+      if (locked) return;
       if (!installed) installPackData(pack);
       downloadPackJSON(pack);
     });
@@ -1051,7 +1071,7 @@ function renderPacks() {
   });
 }
 function installPackData(pack) {
-  if (pack.requiresSignIn && !cloud.signedIn) { alert("このパックはサインインが必要です。"); return; }
+  if (pack.requiresCode && !state.eternalUnlocked) return;
   const stages = pack.stages || {};
   Object.keys(stages).forEach(k => { state.extraStages[Number(k)] = stages[k]; });
   if (!state.installedPacks.includes(pack.id)) state.installedPacks.push(pack.id);
@@ -2277,7 +2297,7 @@ $("btn-share-x").addEventListener("click", () => {
 $("btn-reset-data").addEventListener("click", () => {
   if (!confirm("ゲームデータを初期化してよろしいですか？\n\n進行・Bポイント・実績・パックがリセットされます。")) return;
   localStorage.removeItem(SAVE_KEY);
-  Object.assign(state, { highScore: 0, unlockedStage: 1, clearedCount: 0, bPoints: 0, owned: ["paddle_default", "ball_default"], equippedPaddle: "paddle_default", equippedBall: "ball_default", equippedTrail: "none", equippedTheme: "none", equippedAccessory: "none", totalBricksDestroyed: 0, totalPlays: 0, achievements: {}, installedPacks: [], extraStages: {}, language: "ja", playerName: "NOVA_07", titleRank: "BEGINNER", onlineRank: 248, survivalBestTime: 0, survivalBestScore: 0, dailyBestScore: 0, dailyRank: 248, magnetUnlocked: false, gameOverReason: "" });
+  Object.assign(state, { highScore: 0, unlockedStage: 1, clearedCount: 0, bPoints: 0, owned: ["paddle_default", "ball_default"], equippedPaddle: "paddle_default", equippedBall: "ball_default", equippedTrail: "none", equippedTheme: "none", equippedAccessory: "none", totalBricksDestroyed: 0, totalPlays: 0, achievements: {}, installedPacks: [], extraStages: {}, eternalUnlocked: false, language: "ja", playerName: "NOVA_07", titleRank: "BEGINNER", onlineRank: 248, survivalBestTime: 0, survivalBestScore: 0, dailyBestScore: 0, dailyRank: 248, magnetUnlocked: false, gameOverReason: "" });
   sound.bgmVolume = 0.5; sound.seVolume = 0.7; DOM.sliderBgm.value = 50; DOM.sliderSe.value = 70; DOM.shake.checked = true;
   applyTheme();
   updateVolumeLabels(); saveGameData(); updateHomeHUD(); showPanel("stages");
@@ -2300,6 +2320,7 @@ $("card-onelife").addEventListener("click", () => { sound.init(); startStage(sta
 $("card-timeattack").addEventListener("click", () => { sound.init(); startStage(state.challengeStage || 1, "timeAttack"); });
 $("card-gravity").addEventListener("click", () => { sound.init(); startStage(state.challengeStage || 1, "gravity"); });
 $("btn-import-pack").addEventListener("click", () => $("pack-file").click());
+$("btn-eternal-unlock").addEventListener("click", checkEternalCode);
 $("pack-file").addEventListener("change", event => {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
