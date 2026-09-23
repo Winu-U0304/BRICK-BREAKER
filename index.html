@@ -76,22 +76,33 @@ input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20
 .file-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
 .hidden-file{display:none;}
 #rippleCanvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9000;}
-#btn-launch-mobile{position:absolute;bottom:20px;right:20px;width:76px;height:76px;background:rgba(0,255,204,0.25);border:2px solid var(--accent-color);color:var(--accent-color);border-radius:50%;font-family:inherit;font-size:14px;font-weight:bold;display:none;align-items:center;justify-content:center;z-index:25;box-shadow:0 0 15px rgba(0,255,204,0.4);backdrop-filter:blur(4px);cursor:pointer;touch-action:none;}
-#btn-launch-mobile:active{background:var(--accent-color);color:#000;transform:scale(0.95);}
+.achievement-toast{position:absolute;top:16px;left:50%;transform:translate(-50%,-140%);background:linear-gradient(135deg,#2b2410,#1a1c29);border:2px solid #ffd700;border-radius:10px;padding:10px 20px;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:40;box-shadow:0 0 20px rgba(255,215,0,0.45);transition:transform 0.35s ease;pointer-events:none;white-space:nowrap;}
+.achievement-toast.show{transform:translate(-50%,0);}
+.achievement-toast .ach-title{color:#ffd700;font-weight:bold;font-size:11px;letter-spacing:1px;}
+.achievement-toast .ach-name{color:#fff;font-size:15px;font-weight:bold;}
+.achievement-toast .ach-bp{color:var(--accent-color);font-size:11px;}
+.stats-detail{margin-top:10px;}
+.stats-detail .stat-item{font-size:11px;}
 @media (max-width: 820px), (max-height: 620px) {
   #game-container{width:100vw;height:calc(100vw * (600 / 800));max-height:100vh;max-width:calc(100vh * (800 / 600));border-width:2px;}
+  #game-container.mode-home{width:100vw;height:100vh;max-width:100vw;max-height:100vh;}
   .screen{padding:12px;}
   #home-screen.active{grid-template-columns:150px 1fr;gap:8px;}
   .sidebar{padding:10px;}
   .game-title{font-size:16px;margin-bottom:8px;}
   .stage-grid,.shop-grid,.challenge-grid,.pack-grid,.achieve-list{grid-template-columns:repeat(2,1fr);gap:8px;}
   .stage-card,.shop-card,.challenge-card,.pack-card{min-height:92px;padding:8px;}
+  .modal-content{padding:16px;gap:10px;max-height:94%;}
+  .modal-title{font-size:16px;}
+  .msg-text{font-size:12px;line-height:1.4;}
+  .menu-btn{padding:8px;font-size:12px;}
+  #modal-result .sidebar-btn{padding:8px;font-size:11px;}
 }
 @media (orientation: portrait) {
   #game-container{width:min(100vw, calc(100vh * 800 / 600));height:min(calc(100vw * 600 / 800), 100vh);}
+  #game-container.mode-home{width:100vw;height:100vh;}
 }
 @media (hover: none) and (pointer: coarse) {
-  #btn-launch-mobile{display:flex;}
   .hud-overlay{top:8px;right:8px;}
 }
 @media (hover: none) and (pointer: coarse) and (max-width: 820px) {
@@ -103,16 +114,23 @@ input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20
 @media (max-width: 380px) {
   .stage-grid,.shop-grid,.challenge-grid,.pack-grid,.achieve-list{grid-template-columns:1fr;}
 }
+@media (max-height: 500px) {
+  .modal-content{padding:12px;gap:6px;}
+  .modal-title{font-size:14px;}
+  .msg-text{font-size:11px;line-height:1.3;}
+  .menu-btn{padding:6px;font-size:11px;}
+  #modal-result .sidebar-btn{padding:6px;font-size:10px;}
+}
 </style>
 </head>
 <body>
 <canvas id="rippleCanvas"></canvas>
-<div id="game-container">
+<div id="game-container" class="mode-home">
   <div id="hud-overlay" class="hud-overlay">
     <button id="btn-hud-config" class="hud-btn" title="設定">⚙️</button>
     <button id="btn-hud-pause" class="hud-btn" title="一時停止">⏸</button>
   </div>
-  <button id="btn-launch-mobile" type="button">発射</button>
+  <div id="achievement-toast" class="achievement-toast"></div>
 
   <section id="home-screen" class="screen active">
     <aside class="sidebar">
@@ -124,7 +142,12 @@ input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20
           <div class="stat-item"><span>解放ステージ</span><span id="stat-unlocked" class="stat-val">1/20</span></div>
           <div class="stat-item"><span>クリア回数</span><span id="stat-cleared-count" class="stat-val">0</span></div>
           <div class="stat-item"><span>Bポイント</span><span id="stat-bpoints" class="stat-val">0</span></div>
-          <div class="stat-item"><span>実績</span><span id="stat-achievements" class="stat-val">0/12</span></div>
+          <div class="stat-item"><span>実績</span><span id="stat-achievements" class="stat-val">0/13</span></div>
+        </div>
+        <div class="stats-detail">
+          <div class="stats-title">STATS</div>
+          <div class="stat-item"><span>総破壊ブロック数</span><span id="stat-bricks" class="stat-val">0</span></div>
+          <div class="stat-item"><span>総プレイ回数</span><span id="stat-plays" class="stat-val">0</span></div>
         </div>
       </div>
       <div class="nav-col">
@@ -159,18 +182,24 @@ input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20
             <div class="card-name">タイムアタック</div>
             <div class="card-desc">90秒以内にクリア。残り時間が多いほど高得点。</div>
           </div>
+          <div class="challenge-card" id="card-gravity">
+            <div class="card-badge">CHAOS</div>
+            <div class="stage-num">GRAVITY</div>
+            <div class="card-name">グラビティチャレンジ</div>
+            <div class="card-desc">数秒ごとに重力が反転！ボールの軌道が激しく変化する高難度モード。</div>
+          </div>
         </div>
         <p class="panel-sub" style="margin-top:14px;">挑戦するステージ</p>
         <div id="challenge-stage-grid" class="stage-grid" style="margin-top:8px;"></div>
       </div>
       <div id="panel-shop" style="display:none;">
         <h2 class="panel-title">B-POINT SHOP</h2>
-        <p class="panel-sub">獲得スコアの 1/10 が Bポイントになります。パドルとボールの見た目・効果を購入して装備できます。</p>
+        <p class="panel-sub">獲得スコアの 1/100 が Bポイントになります（スコア1000点以上のプレイのみ加算）。パドルとボールの見た目・効果を購入して装備できます。</p>
         <div id="shop-grid" class="shop-grid" style="margin-top:12px;"></div>
       </div>
       <div id="panel-achieve" style="display:none;">
         <h2 class="panel-title">ACHIEVEMENTS</h2>
-        <p class="panel-sub">条件を満たすと自動で開放されます。</p>
+        <p class="panel-sub">条件を満たすと自動で開放されます。解放時にBポイントも獲得できます。</p>
         <div id="achieve-grid" class="achieve-list" style="margin-top:12px;"></div>
       </div>
       <div id="panel-packs" style="display:none;">
@@ -239,6 +268,16 @@ const RIPPLE_ON_CANVAS_TAP = false;
 const RIPPLE_MAX_RADIUS = 160;
 const TIME_ATTACK_LIMIT = 90;
 const COMBO_WINDOW = 1.8;
+const ACHIEVEMENT_BONUS_BP = 50;
+const BP_SCORE_DIVISOR = 100;
+const BP_MIN_SCORE = 1000;
+const GRAVITY_FLIP_INTERVAL = 4;
+const GRAVITY_STRENGTH = 5.5;
+const THEMES = {
+  theme_sunset: { "--bg-color": "#1a0d1f", "--panel-color": "#2b1330", "--accent-color": "#ff8a3d", "--border-color": "#4a2140" },
+  theme_mono: { "--bg-color": "#0a0a0a", "--panel-color": "#1c1c1c", "--accent-color": "#e0e0e0", "--border-color": "#3a3a3a" }
+};
+const DEFAULT_THEME_VARS = { "--bg-color": "#0d0e15", "--panel-color": "#1a1c29", "--accent-color": "#00ffcc", "--border-color": "#2d3142" };
 
 const STAGES = {
   1: { name: "NORMAL FIELD", rows: 4, cols: 9, description: "基本のブロック配置。操作に慣れよう。" },
@@ -280,13 +319,19 @@ const BUILTIN_PACK = {
 const SHOP_ITEMS = {
   paddle_default: { id: "paddle_default", kind: "paddle", name: "CLASSIC PADDLE", price: 0, desc: "標準パドル。" },
   paddle_neon: { id: "paddle_neon", kind: "paddle", name: "NEON PADDLE", price: 80, desc: "サイバーな発光パドル。" },
-  paddle_gold: { id: "paddle_gold", kind: "paddle", name: "GOLD PADDLE", price: 150, desc: "黄金のパドル。見栄え重視。" },
+  paddle_gold: { id: "paddle_gold", kind: "paddle", name: "GOLD PADDLE", price: 150, desc: "黄金のグラデーションパドル。" },
   paddle_energy: { id: "paddle_energy", kind: "paddle", name: "ENERGY PADDLE", price: 220, desc: "エネルギー刃のパドル。" },
   ball_default: { id: "ball_default", kind: "ball", name: "NORMAL BALL", price: 0, desc: "標準ボール。" },
-  ball_fire: { id: "ball_fire", kind: "ball", name: "FIRE BALL", price: 120, desc: "炎の球。ブロックに2ダメージ。" },
+  ball_fire: { id: "ball_fire", kind: "ball", name: "FIRE BALL", price: 120, desc: "燃え盛る炎の球。ブロックに2ダメージ。" },
   ball_ice: { id: "ball_ice", kind: "ball", name: "ICE BALL", price: 120, desc: "氷の球。ヒット時に追加点。" },
   ball_plasma: { id: "ball_plasma", kind: "ball", name: "PLASMA BALL", price: 200, desc: "隣接ブロックへ連鎖ダメージ。" },
-  ball_void: { id: "ball_void", kind: "ball", name: "VOID BALL", price: 300, desc: "1ヒット貫通する虚空の球。" }
+  ball_void: { id: "ball_void", kind: "ball", name: "VOID BALL", price: 300, desc: "1ヒット貫通する虚空の球。" },
+  trail_neon: { id: "trail_neon", kind: "trail", name: "NEON TRAIL", price: 90, desc: "ボールの軌跡がネオン発光する。もう一度クリックで解除。" },
+  trail_rainbow: { id: "trail_rainbow", kind: "trail", name: "RAINBOW TRAIL", price: 160, desc: "虹色に輝く軌跡エフェクト。もう一度クリックで解除。" },
+  theme_sunset: { id: "theme_sunset", kind: "theme", name: "SUNSET THEME", price: 130, desc: "画面全体がサンセットカラーになるレトロ着せ替え。" },
+  theme_mono: { id: "theme_mono", kind: "theme", name: "MONOCHROME THEME", price: 100, desc: "モノクロレトロ着せ替え。" },
+  item_shield: { id: "item_shield", kind: "accessory", name: "底面シールド", price: 90, desc: "装備中、各ステージ開始後に一度だけミスを無効化する。" },
+  item_laser_start: { id: "item_laser_start", kind: "accessory", name: "レーザースタート", price: 110, desc: "装備中、ステージ開始時に3秒間レーザーが自動発動する。" }
 };
 
 const ACHIEVEMENTS = {
@@ -301,7 +346,8 @@ const ACHIEVEMENTS = {
   rich: { name: "B-TYCOON", desc: "Bポイントを1000貯める" },
   fire_user: { name: "PYRO", desc: "ファイアボールを装備してプレイ" },
   pack_dl: { name: "EXPAND", desc: "追加パックを導入する" },
-  score_8k: { name: "HIGH ROLLER", desc: "1プレイで8000点以上" }
+  score_8k: { name: "HIGH ROLLER", desc: "1プレイで8000点以上" },
+  gravity_clear: { name: "GRAVITY BENDER", desc: "グラビティチャレンジをクリア" }
 };
 
 const $ = id => document.getElementById(id);
@@ -340,7 +386,9 @@ const state = {
   equippedPaddle: "paddle_default", equippedBall: "ball_default", achievements: {},
   installedPacks: [], extraStages: {}, mode: "story", challengeStage: 1,
   elapsed: 0, lastTimeBonus: 0, lastBGain: 0, combo: 0, comboTimer: 0, maxCombo: 0,
-  lastShareText: ""
+  lastShareText: "", equippedTrail: "none", equippedTheme: "none", equippedAccessory: "none",
+  totalBricksDestroyed: 0, totalPlays: 0, shieldAvailable: false,
+  gravityDir: 1, gravityTimer: GRAVITY_FLIP_INTERVAL
 };
 const paddle = { x: 350, y: 550, width: 100, baseWidth: 100, height: 15, speed: 600, laserTimer: 0, laserShotTimer: 0 };
 const activeBuffs = { expand: 0, laser: 0 };
@@ -423,6 +471,7 @@ class SoundEngine {
       case "clear": [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => setTimeout(() => this.tone(f, "triangle", 0.2, true, 0), i * 100)); break;
       case "combo": this.tone(700 + state.combo * 20, "sine", 0.07, true, 80); break;
       case "buy": this.tone(880, "triangle", 0.12, true, 200); break;
+      case "achievement": [660, 880, 1100].forEach((f, i) => setTimeout(() => this.tone(f, "triangle", 0.15, true, 0), i * 80)); break;
     }
   }
   startBGM() {
@@ -459,6 +508,11 @@ function loadGameData() {
     if (!state.owned.includes("ball_default")) state.owned.push("ball_default");
     state.equippedPaddle = data.equippedPaddle || "paddle_default";
     state.equippedBall = data.equippedBall || "ball_default";
+    state.equippedTrail = data.equippedTrail || "none";
+    state.equippedTheme = data.equippedTheme || "none";
+    state.equippedAccessory = data.equippedAccessory || "none";
+    state.totalBricksDestroyed = Number(data.totalBricksDestroyed) || 0;
+    state.totalPlays = Number(data.totalPlays) || 0;
     state.achievements = data.achievements || {};
     state.installedPacks = Array.isArray(data.installedPacks) ? data.installedPacks : [];
     state.extraStages = data.extraStages || {};
@@ -468,14 +522,24 @@ function loadGameData() {
   } catch (e) {}
   updateVolumeLabels();
   updateHomeHUD();
+  applyTheme();
 }
 function saveGameData() {
   localStorage.setItem(SAVE_KEY, JSON.stringify({
     highScore: state.highScore, unlockedStage: state.unlockedStage, clearedCount: state.clearedCount,
     bPoints: state.bPoints, owned: state.owned, equippedPaddle: state.equippedPaddle, equippedBall: state.equippedBall,
+    equippedTrail: state.equippedTrail, equippedTheme: state.equippedTheme, equippedAccessory: state.equippedAccessory,
+    totalBricksDestroyed: state.totalBricksDestroyed, totalPlays: state.totalPlays,
     achievements: state.achievements, installedPacks: state.installedPacks, extraStages: state.extraStages,
     bgmVol: sound.bgmVolume, seVol: sound.seVolume, shake: DOM.shake.checked
   }));
+}
+function applyTheme() {
+  const preset = THEMES[state.equippedTheme];
+  const root = document.documentElement;
+  Object.entries(DEFAULT_THEME_VARS).forEach(([key, val]) => {
+    root.style.setProperty(key, (preset && preset[key]) ? preset[key] : val);
+  });
 }
 function updateHomeHUD() {
   DOM.highScore.textContent = state.highScore;
@@ -484,6 +548,8 @@ function updateHomeHUD() {
   DOM.bpoints.textContent = state.bPoints;
   const unlockedAch = Object.keys(ACHIEVEMENTS).filter(id => state.achievements[id]).length;
   DOM.achievements.textContent = `${unlockedAch}/${Object.keys(ACHIEVEMENTS).length}`;
+  $("stat-bricks").textContent = state.totalBricksDestroyed;
+  $("stat-plays").textContent = state.totalPlays;
 }
 function updateVolumeLabels() {
   DOM.bgmValue.textContent = `${DOM.sliderBgm.value}%`;
@@ -492,9 +558,19 @@ function updateVolumeLabels() {
 function unlockAchievement(id) {
   if (!ACHIEVEMENTS[id] || state.achievements[id]) return;
   state.achievements[id] = true;
-  addFloatingText(GAME_WIDTH / 2, 120, `実績解除: ${ACHIEVEMENTS[id].name}`, COLORS.gold);
+  state.bPoints += ACHIEVEMENT_BONUS_BP;
+  showAchievementToast(ACHIEVEMENTS[id], ACHIEVEMENT_BONUS_BP);
+  sound.playSE("achievement");
   saveGameData();
   updateHomeHUD();
+}
+function showAchievementToast(ach, bonus) {
+  const el = $("achievement-toast");
+  if (!el) return;
+  el.innerHTML = `<div class="ach-title">🏆 実績解除！</div><div class="ach-name">${ach.name}</div><div class="ach-bp">+${bonus} BP</div>`;
+  el.classList.add("show");
+  clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => el.classList.remove("show"), 2600);
 }
 
 function showPanel(name) {
@@ -544,27 +620,46 @@ function renderChallengeStages() {
     renderChallengeStages();
   }, true);
 }
+function slotField(kind) {
+  switch (kind) {
+    case "paddle": return "equippedPaddle";
+    case "ball": return "equippedBall";
+    case "trail": return "equippedTrail";
+    case "theme": return "equippedTheme";
+    case "accessory": return "equippedAccessory";
+    default: return null;
+  }
+}
+const TOGGLE_KINDS = ["trail", "theme", "accessory"];
 function renderShop() {
   const host = $("shop-grid");
   host.innerHTML = "";
   Object.values(SHOP_ITEMS).forEach(item => {
     const owned = state.owned.includes(item.id);
-    const equipped = (item.kind === "paddle" ? state.equippedPaddle : state.equippedBall) === item.id;
+    const field = slotField(item.kind);
+    const equipped = field && state[field] === item.id;
     const card = document.createElement("div");
     card.className = "shop-card" + (owned ? " owned" : "") + (equipped ? " equipped" : "");
     const badge = equipped ? "装備中" : owned ? "所持" : item.price + " BP";
-    card.innerHTML = `<div class="card-badge">${badge}</div><div class="card-name">${item.name}</div><div class="card-desc">${item.desc}</div><div class="price">${owned ? (equipped ? "装備中" : "装備する") : "購入 " + item.price + " BP"}</div>`;
+    const actionLabel = owned ? (equipped ? (TOGGLE_KINDS.includes(item.kind) ? "解除する" : "装備中") : "装備する") : "購入 " + item.price + " BP";
+    card.innerHTML = `<div class="card-badge">${badge}</div><div class="card-name">${item.name}</div><div class="card-desc">${item.desc}</div><div class="price">${actionLabel}</div>`;
     card.addEventListener("click", () => {
       sound.init();
       if (!owned) {
-        if (state.bPoints < item.price) { alert("Bポイントが足りません。スコアの1/10がBポイントになります。"); return; }
+        if (state.bPoints < item.price) { alert("Bポイントが足りません。獲得スコアの1/100（1000点以上のプレイのみ）がBポイントになります。"); return; }
         state.bPoints -= item.price;
         state.owned.push(item.id);
         unlockAchievement("shopper");
         sound.playSE("buy");
       }
-      if (item.kind === "paddle") state.equippedPaddle = item.id;
-      else state.equippedBall = item.id;
+      if (field) {
+        if (TOGGLE_KINDS.includes(item.kind)) {
+          state[field] = (state[field] === item.id) ? "none" : item.id;
+        } else {
+          state[field] = item.id;
+        }
+      }
+      if (item.kind === "theme") applyTheme();
       saveGameData();
       updateHomeHUD();
       renderShop();
@@ -579,7 +674,7 @@ function renderAchievements() {
     const unlocked = !!state.achievements[id];
     const card = document.createElement("div");
     card.className = "achieve-card" + (unlocked ? " unlocked" : " locked-ach");
-    card.innerHTML = `<div class="card-badge">${unlocked ? "★ OPEN" : "LOCK"}</div><div class="card-name">${unlocked ? ach.name : "???"}</div><div class="card-desc">${ach.desc}</div>`;
+    card.innerHTML = `<div class="card-badge">${unlocked ? "★ OPEN" : "LOCK"}</div><div class="card-name">${unlocked ? ach.name : "???"}</div><div class="card-desc">${unlocked ? ach.desc : ach.desc}</div>`;
     host.appendChild(card);
   });
 }
@@ -616,9 +711,13 @@ function downloadPackJSON(pack) {
   URL.revokeObjectURL(a.href);
 }
 
-function showGameScreen() { DOM.home.classList.remove("active"); DOM.game.classList.add("active"); DOM.hud.style.display = "flex"; }
+function showGameScreen() {
+  DOM.home.classList.remove("active"); DOM.game.classList.add("active"); DOM.hud.style.display = "flex";
+  DOM.container.classList.remove("mode-home"); DOM.container.classList.add("mode-game");
+}
 function showHomeScreen() {
   DOM.game.classList.remove("active"); DOM.home.classList.add("active"); DOM.hud.style.display = "none";
+  DOM.container.classList.remove("mode-game"); DOM.container.classList.add("mode-home");
   showPanel("stages"); updateHomeHUD();
 }
 
@@ -675,6 +774,7 @@ function createBrick(stage, row, col) {
     case 13:
       if ((row + col) % 4 === 0) { type = "speed"; color = COLORS.yellow; }
       else if (row === 2) { type = "hardcore"; hp = 3; color = COLORS.purple; }
+      else if (row === 4 && col % 2 === 0) { type = "mover"; color = "#3399ff"; }
       else color = COLORS.accent;
       break;
     case 14:
@@ -691,6 +791,7 @@ function createBrick(stage, row, col) {
       break;
     case 17:
       if ((row * col) % 3 === 0) { type = "hardcore"; hp = 3; color = COLORS.purple; }
+      else if (row === 3 && col % 3 === 0) { type = "bomb"; color = "#ff2200"; }
       else if ((row + col) % 2 === 0) { type = "durable"; hp = 2; color = COLORS.pink; }
       break;
     case 18:
@@ -740,7 +841,22 @@ function createBrick(stage, row, col) {
     }
   }
   const width = 74, height = 22, padding = 10, offsetTop = 80, offsetLeft = 28;
-  return { x: offsetLeft + col * (width + padding), y: offsetTop + row * (height + padding), width, height, type, hp, maxHp: hp, color, alive: true, hitAnim: 0 };
+  const brick = { x: offsetLeft + col * (width + padding), y: offsetTop + row * (height + padding), width, height, type, hp, maxHp: hp, color, alive: true, hitAnim: 0 };
+  if (type === "mover") {
+    brick.moveMin = offsetLeft;
+    brick.moveMax = GAME_WIDTH - offsetLeft - width;
+    brick.moveDir = (col % 2 === 0) ? 1 : -1;
+    brick.moveSpeed = 45 + row * 4;
+  }
+  return brick;
+}
+function updateMovingBricks(delta) {
+  for (const b of bricks) {
+    if (!b.alive || b.type !== "mover") continue;
+    b.x += b.moveDir * b.moveSpeed * delta * 60 * 0.5;
+    if (b.x < b.moveMin) { b.x = b.moveMin; b.moveDir = 1; }
+    if (b.x > b.moveMax) { b.x = b.moveMax; b.moveDir = -1; }
+  }
 }
 function createLevelBricks(stage) {
   const config = getStageConfig(stage) || STAGES[1];
@@ -785,7 +901,15 @@ function startStage(stage, mode) {
   items = []; particles = []; floatingTexts = []; lasers = [];
   resetBall();
   input.left = input.right = input.keyboardActive = false;
+  state.gravityDir = 1;
+  state.gravityTimer = GRAVITY_FLIP_INTERVAL;
+  state.shieldAvailable = state.equippedAccessory === "item_shield";
+  state.totalPlays++;
+  if (state.equippedAccessory === "item_laser_start") {
+    paddle.laserTimer = 3000; paddle.laserShotTimer = 0; activeBuffs.laser = 3000;
+  }
   if (state.equippedBall === "ball_fire") unlockAchievement("fire_user");
+  saveGameData();
   showGameScreen();
   sound.startBGM();
 }
@@ -858,7 +982,7 @@ function damageBrick(brick, source) {
       if (near) {
         other.hp -= 1;
         other.hitAnim = 1;
-        if (other.hp <= 0) { other.alive = false; createExplosion(other.x + other.width / 2, other.y + other.height / 2, other.color, 10, false); }
+        if (other.hp <= 0) { other.alive = false; state.totalBricksDestroyed++; createExplosion(other.x + other.width / 2, other.y + other.height / 2, other.color, 10, false); }
         else if (other.hp === 2) other.color = COLORS.pink;
         else if (other.hp === 1) other.color = COLORS.blue;
       }
@@ -873,10 +997,31 @@ function damageBrick(brick, source) {
     return;
   }
   brick.alive = false;
+  state.totalBricksDestroyed++;
   const isHard = brick.type === "hardcore" || brick.type === "durable";
   createExplosion(brick.x + brick.width / 2, brick.y + brick.height / 2, brick.color, isHard ? 22 : 14, isHard);
   if (DOM.shake.checked) state.screenShake = isHard ? 7 : 4;
   sound.playSE(isHard ? "break_hard" : "break");
+  if (brick.type === "bomb") {
+    for (const other of bricks) {
+      if (!other.alive || other === brick) continue;
+      const dx = Math.abs((other.x + other.width / 2) - (brick.x + brick.width / 2));
+      const dy = Math.abs((other.y + other.height / 2) - (brick.y + brick.height / 2));
+      if (dx < 115 && dy < 55) {
+        other.hp -= 2;
+        other.hitAnim = 1;
+        if (other.hp <= 0) {
+          other.alive = false;
+          state.totalBricksDestroyed++;
+          state.score += 10;
+          createExplosion(other.x + other.width / 2, other.y + other.height / 2, other.color, 10, false);
+        } else if (other.hp === 2) other.color = COLORS.pink;
+        else if (other.hp === 1) other.color = COLORS.blue;
+      }
+    }
+    createExplosion(brick.x + brick.width / 2, brick.y + brick.height / 2, "#ff8800", 30, true);
+    if (DOM.shake.checked) state.screenShake = 10;
+  }
   if (brick.type === "speed") {
     balls.forEach(ball => { ball.speedMultiplier = 1.6; setTimeout(() => { if (ball) ball.speedMultiplier = 1; }, 4000); });
     addFloatingText(brick.x + brick.width / 2, brick.y - 15, "SPEED UP!!", COLORS.yellow);
@@ -910,10 +1055,35 @@ function updateBalls(delta) {
     const ball = balls[i];
     if (stickyBall && i === 0) continue;
     const multiplier = ball.speedMultiplier;
+    if (state.mode === "gravity") {
+      ball.vy += state.gravityDir * GRAVITY_STRENGTH * delta;
+      ball.vy = Math.max(-11, Math.min(11, ball.vy));
+    }
     ball.x += ball.vx * multiplier * delta * 60;
     ball.y += ball.vy * multiplier * delta * 60;
-    const trail = ball.skin === "ball_fire" ? COLORS.fire : ball.skin === "ball_ice" ? COLORS.ice : ball.skin === "ball_plasma" ? COLORS.purple : ball.skin === "ball_void" ? "#8844ff" : (multiplier > 1.2 ? COLORS.yellow : COLORS.accent);
-    particles.push({ x: ball.x, y: ball.y, vx: 0, vy: 0, radius: ball.radius * 0.85, color: trail, alpha: 0.45, decay: 0.07, shape: "circle" });
+    if (ball.skin === "ball_fire") {
+      const flameColors = ["#fff3b0", "#ffcc33", "#ff8c1a", "#ff4d00", "#c62300"];
+      for (let f = 0; f < 2; f++) {
+        particles.push({
+          x: ball.x + (Math.random() - 0.5) * 5,
+          y: ball.y + (Math.random() - 0.5) * 5,
+          vx: (Math.random() - 0.5) * 1.6,
+          vy: -Math.random() * 2.2 - 0.4,
+          radius: Math.random() * 3.5 + 2,
+          color: flameColors[Math.floor(Math.random() * flameColors.length)],
+          alpha: 0.9,
+          decay: Math.random() * 0.05 + 0.05,
+          shape: "circle"
+        });
+      }
+    } else {
+      let trail = ball.skin === "ball_ice" ? COLORS.ice : ball.skin === "ball_plasma" ? COLORS.purple : ball.skin === "ball_void" ? "#8844ff" : (multiplier > 1.2 ? COLORS.yellow : COLORS.accent);
+      if (state.equippedTrail === "trail_rainbow") { trail = `hsl(${Math.floor(performance.now() / 8) % 360}, 100%, 60%)`; }
+      particles.push({ x: ball.x, y: ball.y, vx: 0, vy: 0, radius: ball.radius * 0.85, color: trail, alpha: 0.45, decay: 0.07, shape: "circle" });
+      if (state.equippedTrail === "trail_neon") {
+        particles.push({ x: ball.x, y: ball.y, vx: 0, vy: 0, radius: ball.radius * 1.6, color: trail, alpha: 0.28, decay: 0.05, isRing: true, maxRadius: ball.radius * 1.6 });
+      }
+    }
     if (ball.x - ball.radius < 0) { ball.x = ball.radius; ball.vx *= -1; sound.playSE("bounce"); }
     if (ball.x + ball.radius > GAME_WIDTH) { ball.x = GAME_WIDTH - ball.radius; ball.vx *= -1; sound.playSE("bounce"); }
     if (ball.y - ball.radius < 0) { ball.y = ball.radius; ball.vy *= -1; sound.playSE("bounce"); }
@@ -922,13 +1092,19 @@ function updateBalls(delta) {
       balls.splice(i, 1);
       sound.playSE("lost_ball");
       if (balls.length === 0 && !stickyBall) {
-        createExplosion(lastX, GAME_HEIGHT - 10, COLORS.danger, 25, true);
-        state.lives--;
-        state.flashTimer = 0.5;
-        state.combo = 0;
-        if (DOM.shake.checked) state.screenShake = 9;
-        addFloatingText(GAME_WIDTH / 2, GAME_HEIGHT - 60, "- LOST LIFE -", COLORS.danger);
-        if (state.lives <= 0) { finishGame(false); return; }
+        if (state.shieldAvailable) {
+          state.shieldAvailable = false;
+          addFloatingText(GAME_WIDTH / 2, GAME_HEIGHT - 60, "SHIELD ACTIVATED!", COLORS.accent);
+          sound.playSE("powerup");
+        } else {
+          createExplosion(lastX, GAME_HEIGHT - 10, COLORS.danger, 25, true);
+          state.lives--;
+          state.flashTimer = 0.5;
+          state.combo = 0;
+          if (DOM.shake.checked) state.screenShake = 9;
+          addFloatingText(GAME_WIDTH / 2, GAME_HEIGHT - 60, "- LOST LIFE -", COLORS.danger);
+          if (state.lives <= 0) { finishGame(false); return; }
+        }
       }
       continue;
     }
@@ -1048,12 +1224,21 @@ function update(delta) {
     if (state.comboTimer <= 0) state.combo = 0;
   }
   if (state.mode === "timeAttack" && state.elapsed >= TIME_ATTACK_LIMIT) { finishGame(false); return; }
+  if (state.mode === "gravity") {
+    state.gravityTimer -= delta;
+    if (state.gravityTimer <= 0) {
+      state.gravityDir *= -1;
+      state.gravityTimer = GRAVITY_FLIP_INTERVAL;
+      addFloatingText(GAME_WIDTH / 2, 200, state.gravityDir > 0 ? "重力: 通常" : "重力: 反転！", state.gravityDir > 0 ? COLORS.blue : COLORS.purple);
+      if (DOM.shake.checked) state.screenShake = 6;
+    }
+  }
   if (state.screenShake > 0) state.screenShake = Math.max(0, state.screenShake - delta * 12);
   if (state.blindTimer > 0) state.blindTimer -= delta * 1000;
   if (state.flashTimer > 0) state.flashTimer -= delta;
   updatePaddle(delta);
   if (stickyBall && balls[0]) { balls[0].x = paddle.x + paddle.width / 2; balls[0].y = paddle.y - balls[0].radius; }
-  updateLasers(delta); updateBalls(delta); updateItems(delta); updateParticles(delta);
+  updateLasers(delta); updateBalls(delta); updateMovingBricks(delta); updateItems(delta); updateParticles(delta);
   if (balls.length === 0 && !stickyBall && state.lives > 0) {
     paddle.width = paddle.baseWidth; paddle.laserTimer = 0; activeBuffs.expand = 0; activeBuffs.laser = 0; resetBall();
   }
@@ -1064,7 +1249,7 @@ function finishGame(won) {
   if (!state.playing) return;
   state.playing = false; state.paused = false; sound.stopBGM();
   if (won) applyClearTimeScore();
-  const gained = Math.floor(state.score / 10);
+  const gained = state.score >= BP_MIN_SCORE ? Math.floor(state.score / BP_SCORE_DIVISOR) : 0;
   state.lastBGain = gained;
   state.bPoints += gained;
   if (state.bPoints >= 1000) unlockAchievement("rich");
@@ -1072,7 +1257,9 @@ function finishGame(won) {
   if (state.score > state.highScore) state.highScore = state.score;
   const timeLine = `タイム: <span class="highlight">${state.elapsed.toFixed(1)}s</span> / タイム補正: <span class="highlight">${state.lastTimeBonus >= 0 ? "+" : ""}${won ? state.lastTimeBonus : 0}</span>`;
   const comboLine = `最大コンボ: <span class="highlight">${state.maxCombo}</span>`;
-  const bpLine = `Bポイント +<span class="highlight">${gained}</span>（スコアの1/10）`;
+  const bpLine = gained > 0
+    ? `Bポイント +<span class="highlight">${gained}</span>（スコアの1/100）`
+    : `Bポイント +<span class="highlight">0</span>（獲得には${BP_MIN_SCORE}点以上が必要）`;
   if (won) {
     sound.playSE("clear");
     DOM.resultTitle.textContent = "STAGE CLEAR!";
@@ -1088,6 +1275,7 @@ function finishGame(won) {
     }
     if (state.mode === "oneLife") unlockAchievement("one_life");
     if (state.mode === "timeAttack") unlockAchievement("time_gold");
+    if (state.mode === "gravity") unlockAchievement("gravity_clear");
     if (state.mode === "story" && getStageConfig(state.currentStage + 1)) {
       DOM.resultAction.style.display = "block";
       DOM.resultAction.textContent = "次のステージへ";
@@ -1136,11 +1324,28 @@ function drawBricks() {
       ctx.scale(scale, scale);
       ctx.translate(-(brick.x + brick.width / 2), -(brick.y + brick.height / 2));
     }
-    ctx.fillStyle = brick.color;
+    if (brick.type === "gold") {
+      const g = ctx.createLinearGradient(brick.x, brick.y, brick.x, brick.y + brick.height);
+      g.addColorStop(0, "#fff6c8");
+      g.addColorStop(0.5, "#ffd700");
+      g.addColorStop(1, "#a8790a");
+      ctx.fillStyle = g;
+    } else if (brick.type === "bomb") {
+      const pulse = 0.5 + Math.sin(performance.now() / 150) * 0.5;
+      ctx.fillStyle = `rgb(${180 + Math.floor(pulse * 75)},${20 + Math.floor(pulse * 30)},0)`;
+    } else {
+      ctx.fillStyle = brick.color;
+    }
     ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
     ctx.strokeStyle = "rgba(255,255,255,0.3)";
     ctx.lineWidth = 2;
     ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
+    if (brick.type === "bomb") {
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 11px 'Courier New'";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("💣", brick.x + brick.width / 2, brick.y + brick.height / 2);
+    }
     if (brick.hp > 1) {
       ctx.fillStyle = "rgba(0,0,0,0.35)";
       ctx.font = "bold 10px 'Courier New'";
@@ -1154,23 +1359,44 @@ function drawBricks() {
 function drawPaddle() {
   const c = paddleColors();
   const glow = paddle.laserTimer > 0;
-  ctx.fillStyle = glow ? COLORS.danger : c.body;
+  if (glow) {
+    ctx.fillStyle = "#170406";
+    ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    ctx.fillStyle = "rgba(255,74,90,0.35)";
+    ctx.fillRect(paddle.x + 3, paddle.y + 2, paddle.width - 6, paddle.height - 4);
+    ctx.save();
+    ctx.shadowColor = COLORS.danger;
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = COLORS.danger;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(paddle.x + 1, paddle.y + 1, paddle.width - 2, paddle.height - 2);
+    ctx.restore();
+    ctx.fillStyle = COLORS.danger;
+    ctx.fillRect(paddle.x + 4, paddle.y + 3, paddle.width - 8, 2);
+    ctx.fillRect(paddle.x, paddle.y - 6, 6, 8);
+    ctx.fillRect(paddle.x + paddle.width - 6, paddle.y - 6, 6, 8);
+    return;
+  }
+  if (state.equippedPaddle === "paddle_gold") {
+    const g = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height);
+    g.addColorStop(0, "#fff6c8");
+    g.addColorStop(0.45, "#ffd700");
+    g.addColorStop(1, "#8a6200");
+    ctx.fillStyle = g;
+  } else {
+    ctx.fillStyle = c.body;
+  }
   ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
   ctx.fillStyle = c.accent;
   ctx.fillRect(paddle.x + 4, paddle.y + 3, paddle.width - 8, 3);
   ctx.fillStyle = c.edge;
   ctx.fillRect(paddle.x, paddle.y, 4, paddle.height);
   ctx.fillRect(paddle.x + paddle.width - 4, paddle.y, 4, paddle.height);
-  if (glow) {
-    ctx.fillStyle = COLORS.danger;
-    ctx.fillRect(paddle.x, paddle.y - 6, 6, 8);
-    ctx.fillRect(paddle.x + paddle.width - 6, paddle.y - 6, 6, 8);
-  }
 }
 function drawBalls() {
   for (const ball of balls) {
     const g = ctx.createRadialGradient(ball.x - 2, ball.y - 2, 1, ball.x, ball.y, ball.radius);
-    if (ball.skin === "ball_fire") { g.addColorStop(0, "#fff2b0"); g.addColorStop(0.45, "#ff6a00"); g.addColorStop(1, "#7a0000"); }
+    if (ball.skin === "ball_fire") { g.addColorStop(0, "#fff8dc"); g.addColorStop(0.35, "#ffd24d"); g.addColorStop(0.65, "#ff6a00"); g.addColorStop(1, "#7a0f00"); }
     else if (ball.skin === "ball_ice") { g.addColorStop(0, "#ffffff"); g.addColorStop(0.5, COLORS.ice); g.addColorStop(1, "#1a4d88"); }
     else if (ball.skin === "ball_plasma") { g.addColorStop(0, "#ffccff"); g.addColorStop(0.5, COLORS.purple); g.addColorStop(1, "#220044"); }
     else if (ball.skin === "ball_void") { g.addColorStop(0, "#ddaaff"); g.addColorStop(0.5, "#5500aa"); g.addColorStop(1, "#090014"); }
@@ -1227,6 +1453,11 @@ function drawHUD() {
     ctx.font = "bold 16px 'Courier New'";
     ctx.fillText(`COMBO x${state.combo}`, 25, 52);
   }
+  if (state.mode === "gravity") {
+    ctx.fillStyle = state.gravityDir > 0 ? COLORS.blue : COLORS.purple;
+    ctx.font = "bold 14px 'Courier New'";
+    ctx.fillText(state.gravityDir > 0 ? "重力 ↓ 通常" : "重力 ↑ 反転中", 25, 72);
+  }
   let buffY = 55;
   if (activeBuffs.expand > 0) { drawBuffStatus("EXPAND", activeBuffs.expand, 8000, "#00ff00", buffY); buffY += 22; }
   if (activeBuffs.laser > 0) { drawBuffStatus("LASER", activeBuffs.laser, 6000, COLORS.danger, buffY); buffY += 22; }
@@ -1244,7 +1475,7 @@ function drawInstructions() {
   if (!stickyBall || !state.playing) return;
   ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = "16px 'Courier New'"; ctx.textAlign = "center";
   const isMobileMatch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-  ctx.fillText(isMobileMatch ? "「発射」ボタンをタップしてボールを発射" : "クリック / スペースキーでボールを発射", GAME_WIDTH / 2, 400);
+  ctx.fillText(isMobileMatch ? "画面をタップしてボールを発射" : "クリック / スペースキーでボールを発射", GAME_WIDTH / 2, 400);
   ctx.textAlign = "left";
 }
 function draw() {
@@ -1252,6 +1483,10 @@ function draw() {
   ctx.save();
   if (state.screenShake > 0) ctx.translate((Math.random() - 0.5) * state.screenShake * 1.5, (Math.random() - 0.5) * state.screenShake * 1.5);
   drawBricks(); drawPaddle(); drawLasers(); drawBalls(); drawItems(); drawParticles(); drawHUD(); drawInstructions();
+  if (state.mode === "gravity") {
+    ctx.fillStyle = state.gravityDir > 0 ? "rgba(0,191,255,0.05)" : "rgba(170,0,255,0.08)";
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+  }
   if (state.flashTimer > 0) { ctx.fillStyle = `rgba(255,74,90,${state.flashTimer * 1.2})`; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT); }
   if (state.blindTimer > 0) {
     ctx.fillStyle = "rgba(0,0,0,0.85)"; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
@@ -1322,10 +1557,6 @@ function launchBall() {
   if (!state.playing || state.paused || !stickyBall) return;
   sound.init(); stickyBall = false; sound.playSE("paddle");
 }
-$("btn-launch-mobile").addEventListener("pointerdown", event => {
-  event.preventDefault(); event.stopPropagation();
-  if (state.playing && !state.paused && stickyBall) launchBall();
-});
 
 $("btn-hud-pause").addEventListener("click", () => setPaused(!state.paused));
 $("btn-hud-config").addEventListener("click", () => { state.configSource = "game"; setPaused(true); DOM.pauseModal.classList.remove("active"); DOM.configModal.classList.add("active"); });
@@ -1350,8 +1581,9 @@ $("btn-share-x").addEventListener("click", () => {
 $("btn-reset-data").addEventListener("click", () => {
   if (!confirm("ゲームデータを初期化してよろしいですか？\n\n進行・Bポイント・実績・パックがリセットされます。")) return;
   localStorage.removeItem(SAVE_KEY);
-  Object.assign(state, { highScore: 0, unlockedStage: 1, clearedCount: 0, bPoints: 0, owned: ["paddle_default", "ball_default"], equippedPaddle: "paddle_default", equippedBall: "ball_default", achievements: {}, installedPacks: [], extraStages: {} });
+  Object.assign(state, { highScore: 0, unlockedStage: 1, clearedCount: 0, bPoints: 0, owned: ["paddle_default", "ball_default"], equippedPaddle: "paddle_default", equippedBall: "ball_default", equippedTrail: "none", equippedTheme: "none", equippedAccessory: "none", totalBricksDestroyed: 0, totalPlays: 0, achievements: {}, installedPacks: [], extraStages: {} });
   sound.bgmVolume = 0.5; sound.seVolume = 0.7; DOM.sliderBgm.value = 50; DOM.sliderSe.value = 70; DOM.shake.checked = true;
+  applyTheme();
   updateVolumeLabels(); saveGameData(); updateHomeHUD(); showPanel("stages");
 });
 DOM.sliderBgm.addEventListener("input", () => { sound.setBGMVolume(Number(DOM.sliderBgm.value) / 100); DOM.bgmValue.textContent = `${DOM.sliderBgm.value}%`; });
@@ -1364,6 +1596,7 @@ $("nav-achieve").addEventListener("click", () => showPanel("achieve"));
 $("nav-packs").addEventListener("click", () => showPanel("packs"));
 $("card-onelife").addEventListener("click", () => { sound.init(); startStage(state.challengeStage || 1, "oneLife"); });
 $("card-timeattack").addEventListener("click", () => { sound.init(); startStage(state.challengeStage || 1, "timeAttack"); });
+$("card-gravity").addEventListener("click", () => { sound.init(); startStage(state.challengeStage || 1, "gravity"); });
 $("btn-import-pack").addEventListener("click", () => $("pack-file").click());
 $("pack-file").addEventListener("change", event => {
   const file = event.target.files && event.target.files[0];
