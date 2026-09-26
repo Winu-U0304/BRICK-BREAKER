@@ -31,6 +31,9 @@ body{color:var(--text-color);font-family:"Courier New",Courier,monospace,"Segoe 
 .sidebar-btn:hover,.sidebar-btn.active-nav{border-color:var(--accent-color);color:var(--accent-color);box-shadow:0 0 10px rgba(0,255,204,0.2);}
 .nav-col{display:flex;flex-direction:column;gap:6px;}
 .stage-grid,.shop-grid,.challenge-grid,.pack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.stage-mode-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 4px;padding:10px 12px;border:1px solid var(--border-color);border-radius:6px;background:var(--panel-color);color:var(--text-color);font-size:12px;font-weight:bold;}
+.stage-mode-toolbar select{min-height:34px;max-width:100%;padding:6px 10px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-color);color:var(--text-color);font:inherit;}
+.stage-mode-toolbar select:focus-visible{outline:2px solid var(--accent-color);outline-offset:2px;}
 .stage-card,.shop-card,.challenge-card,.pack-card,.achieve-card{position:relative;min-height:110px;padding:12px;background:var(--panel-color);border:2px solid var(--border-color);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;text-align:center;gap:4px;}
 .stage-card:hover:not(.locked),.shop-card:hover,.challenge-card:hover,.pack-card:hover{border-color:var(--accent-color);transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,255,204,0.15);}
 .stage-card.locked{opacity:0.4;cursor:not-allowed;background:#11121a;}
@@ -244,6 +247,21 @@ input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20
       <div id="panel-stages" style="display: block;">
         <h2 class="panel-title" data-i18n="stagePanelTitle">STAGE SELECT</h2>
         <p class="panel-sub" data-i18n="stagePanelSub">クリアすると次が解放されます。クリアが早いほどタイムボーナス、遅いと減点されます。</p>
+        <label class="stage-mode-toolbar" for="stage-environment-select">プレイ環境 / CHALLENGE RULE
+          <select id="stage-environment-select" aria-label="通常ステージに適用する環境ルール">
+            <option value="story">通常 / NORMAL</option>
+            <option value="oneLife">1ライフ / ONE LIFE</option>
+            <option value="timeAttack">タイムアタック / TIME ATTACK</option>
+            <option value="gravity">重力反転 / GRAVITY</option>
+            <option value="conductor">イオン放電 / ION SURGE</option>
+            <option value="mirror">左右反転 / MIRROR</option>
+            <option value="sandstorm">流砂 / SANDSTORM</option>
+            <option value="cosmic">宇宙ドリフト / COSMIC</option>
+            <option value="wind">強風 / WIND</option>
+            <option value="sniper">精密射撃 / SNIPER</option>
+            <option value="blindTime">暗闇・75秒 / BLIND TIME</option>
+          </select>
+        </label>
         <div id="stage-grid-container" class="stage-grid" style="margin-top:12px;"><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">1</div><div class="stage-name">NORMAL FIELD</div><div class="stage-description">基本のブロック配置。操作に慣れよう。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">2</div><div class="stage-name">DURABLE WALL</div><div class="stage-description">2回叩かないと壊れない頑丈なブロック。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">3</div><div class="stage-name">SPEED BOOSTER</div><div class="stage-description">黄色ブロックを壊すとボールが一時的に高速化。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">4</div><div class="stage-name">HIDDEN LAYER</div><div class="stage-description">耐久値3の紫ブロック。レーザーを活用しよう。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">5</div><div class="stage-name">PYRAMID PEAK</div><div class="stage-description">ピラミッド状にそびえ立つ罠の配置。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">6</div><div class="stage-name">ZIGZAG MAZE</div><div class="stage-description">ジグザグに配置された特殊ブロックの壁。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">7</div><div class="stage-name">HARDCORE ZONE</div><div class="stage-description">耐久力の高いブロックが密集するエリア。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">8</div><div class="stage-name">SPEED HELL</div><div class="stage-description">スピードアップブロックが大量に潜む難所。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">9</div><div class="stage-name">FORTRESS</div><div class="stage-description">幾重にも重なる要塞のようなブロック群。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">10</div><div class="stage-name">FINAL CASTLE</div><div class="stage-description">全種類の特殊ブロックが登場する要塞関門。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">11</div><div class="stage-name">RANDOM HELL</div><div class="stage-description">【ランダム】配置も耐久も毎回変わるステージ！</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">12</div><div class="stage-name">OPEN SKY</div><div class="stage-description">【解放】天井を抜けても安心な開放フィールド。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">13</div><div class="stage-name">LASER LAB</div><div class="stage-description">【研究所】レーザーとテクニックで崩す実験場。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">14</div><div class="stage-name">DIAMOND RING</div><div class="stage-description">【ダイヤ】高得点ゴールドが散りばめられた配置。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">15</div><div class="stage-name">VOID CORRIDOR</div><div class="stage-description">【暗闇】ボールが当たると視界が暗くなるブラインド地帯。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">16</div><div class="stage-name">GOLDEN RUSH</div><div class="stage-description">【ゴールド】高得点ブロックが並ぶスペシャル面。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">17</div><div class="stage-name">MAZE OF PAIN</div><div class="stage-description">【迷宮】難所が入り組む複雑な立体ゾーン。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">18</div><div class="stage-name">TITAN FORT</div><div class="stage-description">【巨壁】高耐久ブロックが隙間なく並ぶ超巨壁。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">19</div><div class="stage-name">CRYSTAL TOWER</div><div class="stage-description">【水晶】宝石のように輝く美しき高難度タワー。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">20</div><div class="stage-name">VOID APOCALYPSE</div><div class="stage-description">【終焉】すべてのギミックが牙をむく最終試練！</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">21</div><div class="stage-name">NEON GRID</div><div class="stage-description">【DLC】ネオン格子。ゴールドと耐久が交互。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">22</div><div class="stage-name">FROST GATE</div><div class="stage-description">【DLC】凍結の門。中央に高耐久、外周はスピード。</div></div><div class="stage-card cleared"><div class="stage-badge">★ クリア済</div><div class="stage-num">23</div><div class="stage-name">PLASMA SPIRE</div><div class="stage-description">【DLC】プラズマ尖塔。対角にハードコア。</div></div><div class="stage-card"><div class="stage-badge">挑戦可能</div><div class="stage-num">24</div><div class="stage-name">GOLDEN VOID</div><div class="stage-description">【DLC】黄金の虚空。高得点とブラインド。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">25</div><div class="stage-name">OMEGA CORE</div><div class="stage-description">【DLC】最終核。全ギミック同時発動。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">26</div><div class="stage-name">NEBULA DRIFT 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.1。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">27</div><div class="stage-name">IRON REQUIEM 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.2。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">28</div><div class="stage-name">CHRONO RIFT 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.3。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">29</div><div class="stage-name">ASHEN SPIRE 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.4。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">30</div><div class="stage-name">QUANTUM VEIL 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.5。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">31</div><div class="stage-name">OBSIDIAN TIDE 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.6。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">32</div><div class="stage-name">SOLAR FRACTURE 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.7。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">33</div><div class="stage-name">GLASS LABYRINTH 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.8。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">34</div><div class="stage-name">EMBER SANCTUM 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.9。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">35</div><div class="stage-name">NULL HORIZON 1</div><div class="stage-description">【エターナル】自動生成ステージ Lv.10。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">36</div><div class="stage-name">NEBULA DRIFT 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.11。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">37</div><div class="stage-name">IRON REQUIEM 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.12。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">38</div><div class="stage-name">CHRONO RIFT 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.13。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">39</div><div class="stage-name">ASHEN SPIRE 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.14。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">40</div><div class="stage-name">QUANTUM VEIL 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.15。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">41</div><div class="stage-name">OBSIDIAN TIDE 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.16。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">42</div><div class="stage-name">SOLAR FRACTURE 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.17。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">43</div><div class="stage-name">GLASS LABYRINTH 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.18。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">44</div><div class="stage-name">EMBER SANCTUM 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.19。番号が上がるほどギミック密度が上昇する。</div></div><div class="stage-card locked"><div class="stage-badge">🔒 ロック</div><div class="stage-num">45</div><div class="stage-name">NULL HORIZON 2</div><div class="stage-description">【エターナル】自動生成ステージ Lv.20。番号が上がるほどギミック密度が上昇する。</div></div></div>
       </div>
       <div id="panel-challenge" style="display:none;">
@@ -272,7 +290,7 @@ input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20
             <div class="card-badge">NEW</div>
             <div class="stage-num">CONDUCT</div>
             <div class="card-name">CONDUCTOR ZONE</div>
-            <div class="card-desc">導電ブロック(⚡)は隣接する同種へ連鎖ダメージ。往復するシールド(🛡)は高耐久のお邪魔ブロック。</div>
+<div class="card-desc">通常ステージの配置で、周期的なイオン放電が起きる。シールドは破壊できず、他のブロックを壊せばクリア。</div>
           </div>
           <div class="challenge-card" id="card-mirror">
             <div class="card-badge">BRAIN</div>
@@ -316,7 +334,7 @@ input[type="checkbox"]:checked + .checkbox-custom::after{transform:translateX(20
         <h2 class="panel-title" data-i18n="packsPanelTitle">COURSE PACKS</h2>
         <p class="panel-sub" data-i18n="packsPanelSub">追加コースをインストール、またはJSONを読み込めます。</p>
         <p id="packs-cloud-status" class="panel-sub" style="color:var(--accent-color);">サインインすると進行状況が自動でクラウド保存されます（コース解放には別途コードが必要）。</p>
-        <div id="pack-grid" class="pack-grid" style="margin-top:12px;"><div class="pack-card equipped"><div class="card-badge">導入済</div><div class="card-name">VOID DLC PACK</div><div class="card-desc">ステージ21〜25。闇と黄金が交差する拡張コース。</div><div class="price">JSONダウンロード</div></div><div class="pack-card equipped"><div class="card-badge">導入済</div><div class="card-name">ETERNAL VAULT PACK</div><div class="card-desc">ステージ26〜45。自動生成される拡張コース群。</div><div class="price">JSONダウンロード</div></div></div>
+        <div id="pack-grid" class="pack-grid" style="margin-top:12px;"><div class="pack-card equipped"><div class="card-badge">導入済</div><div class="card-name">VOID DLC PACK</div><div class="card-desc">ステージ21〜25。闇と黄金が交差する拡張コース。</div><div class="price">JSONダウンロード</div></div><div class="pack-card equipped"><div class="card-badge">導入済</div><div class="card-name">ETERNAL VAULT / STARFRONT PACK</div><div class="card-desc">ステージ26〜46。重複を整理し、最後に宇宙決戦3面を追加。</div><div class="price">JSONダウンロード</div></div></div>
         <div class="file-row" style="margin-top:16px;">
           <input id="eternal-code-input" type="text" placeholder="コードを張り付け" style="height:38px;padding:0 10px;border:1px solid var(--border-color);border-radius:4px;background:#0d0e15;color:var(--text-color);font:inherit;">
           <button id="btn-eternal-unlock" class="menu-btn" type="button">実行</button>
@@ -485,6 +503,10 @@ const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
 const SAVE_KEY = "retro_brick_breaker_save_v6";
 const BASE_STAGES = 20;
+const COURSE_PACK_REVISION = 2;
+const STAGE_BOSS_INTERVAL = 10;
+const STAGE_BOSS_HP = 10;
+const STAGE_BOSS_REINFORCEMENT_HP = [7, 4, 1];
 const COLORS = { accent: "#00ffcc", white: "#ffffff", danger: "#ff4a5a", pink: "#ff00aa", yellow: "#ffff00", purple: "#aa00ff", blue: "#00bfff", gold: "#ffd700", dark: "#2a1b4e", ice: "#7ecbff", fire: "#ff6a00" };
 const RIPPLE_ON_CANVAS_TAP = false;
 const RIPPLE_MAX_RADIUS = 160;
@@ -572,22 +594,68 @@ const BUILTIN_PACK = {
 };
 
 const ETERNAL_THEMES = ["NEBULA DRIFT", "IRON REQUIEM", "CHRONO RIFT", "ASHEN SPIRE", "QUANTUM VEIL", "OBSIDIAN TIDE", "SOLAR FRACTURE", "GLASS LABYRINTH", "EMBER SANCTUM", "NULL HORIZON"];
-function buildEternalStages(start, count) {
+const DUPLICATE_ETERNAL_STAGES = new Set([35, 45]);
+function buildEternalStages() {
   const stages = {};
-  for (let i = 0; i < count; i++) {
-    const lap = Math.floor(i / ETERNAL_THEMES.length) + 1;
-    stages[start + i] = { name: `${ETERNAL_THEMES[i % ETERNAL_THEMES.length]} ${lap}`, rows: 6, cols: 9, description: `【エターナル】自動生成ステージ Lv.${i + 1}。番号が上がるほどギミック密度が上昇する。` };
+  let nextStage = 26;
+  for (let sourceStage = 26; sourceStage <= 45; sourceStage++) {
+    if (DUPLICATE_ETERNAL_STAGES.has(sourceStage)) continue;
+    const retainedIndex = nextStage - 26;
+    const lap = Math.floor(retainedIndex / ETERNAL_THEMES.length) + 1;
+    stages[nextStage++] = {
+      name: `${ETERNAL_THEMES[retainedIndex % ETERNAL_THEMES.length]} ${lap}`,
+      rows: 6,
+      cols: 9,
+      patternStage: sourceStage,
+      description: `【エターナル】旧ステージ${sourceStage}の配置を継承。ギミック密度の高いコース。`
+    };
   }
+  stages[44] = { name: "ASTEROID FRONT", rows: 6, cols: 9, description: "【宇宙戦】小惑星帯を突破し、敵艦隊の前線を切り開け。", patternRows: ["..GGGGG..", ".DDBBBBD.", "NNDBBBDNN", ".NDBBBDN.", "..DBBBD..", "....D...."] };
+  stages[45] = { name: "STARFIGHTER SQUADRON", rows: 6, cols: 9, description: "【宇宙戦】編隊を組むスターファイターを撃破せよ。", patternRows: ["..DHHHD..", ".HNNNNNH.", "NN..BB..N", ".S.NGN.S.", "H.N...N.H", "....H...."] };
+  stages[46] = { name: "NOVA FLAGSHIP", rows: 6, cols: 9, description: "【最終決戦】巨大旗艦のコアを破壊して宇宙を救え。", patternRows: ["..GGHGG..", ".DHHHHHD.", "HDDBBBBDH", "BNNHHHNNB", ".BDHSHDB.", "...BBB..."] };
   return stages;
 }
 const ETERNAL_PACK = {
   id: "eternal-vault",
-  name: "ETERNAL VAULT PACK",
-  description: "ステージ26〜45。自動生成される拡張コース群。",
+  name: "ETERNAL VAULT / STARFRONT PACK",
+  description: "ステージ26〜46。重複コースを整理し、最後に宇宙決戦3面を追加。",
   priceLabel: "秘密のコードで解放",
   requiresCode: true,
-  stages: buildEternalStages(26, 20)
+  stages: buildEternalStages()
 };
+const SPACE_BATTLE_BLOCKS = {
+  N: { type: "normal", hp: 1, color: COLORS.blue },
+  D: { type: "durable", hp: 2, color: COLORS.pink },
+  H: { type: "hardcore", hp: 3, color: COLORS.purple },
+  S: { type: "speed", hp: 1, color: COLORS.yellow },
+  G: { type: "gold", hp: 1, color: COLORS.gold },
+  B: { type: "bomb", hp: 1, color: COLORS.danger }
+};
+function compactEternalStageNumber(stage) {
+  if (stage === 35 || stage === 45) return null;
+  if (stage >= 36 && stage <= 44) return stage - 1;
+  return stage;
+}
+function migrateCoursePackProgress() {
+  if (state.coursePackRevision >= COURSE_PACK_REVISION) return false;
+  const hasLegacyEternalPack = state.installedPacks.includes(ETERNAL_PACK.id);
+  if (hasLegacyEternalPack) {
+    Object.keys(state.extraStages).forEach(stage => {
+      const number = Number(stage);
+      if (number >= 26 && number <= 45) delete state.extraStages[stage];
+    });
+    Object.assign(state.extraStages, ETERNAL_PACK.stages);
+    const legacyClears = [];
+    for (let stage = 26; stage <= 45; stage++) {
+      const compactStage = compactEternalStageNumber(stage);
+      if (compactStage && state.achievements[`pack_stage_${stage}`]) legacyClears.push(compactStage);
+      delete state.achievements[`pack_stage_${stage}`];
+    }
+    legacyClears.forEach(stage => { state.achievements[`pack_stage_${stage}`] = true; });
+  }
+  state.coursePackRevision = COURSE_PACK_REVISION;
+  return true;
+}
 const ALL_PACKS = [BUILTIN_PACK, ETERNAL_PACK];
 const ETERNAL_CODE = "BRICKVAULT-77";
 function checkEternalCode() {
@@ -597,7 +665,7 @@ function checkEternalCode() {
     state.eternalUnlocked = true;
     saveGameData();
     renderPacks();
-    alert("コード一致。ETERNAL VAULT PACK が解放");
+    alert("コード一致。ETERNAL VAULT / STARFRONT PACK が解放");
   } else {
     alert("コードが違います。");
   }
@@ -754,7 +822,7 @@ const state = {
   playing: false, paused: false, screenShake: 0, configSource: "home", lastTime: 0,
   blindTimer: 0, flashTimer: 0, bPoints: 0, owned: ["paddle_default", "ball_default"],
   equippedPaddle: "paddle_default", equippedBall: "ball_default", achievements: {},
-  installedPacks: [], extraStages: {}, eternalUnlocked: false, mode: "story", challengeStage: 1,
+   installedPacks: [], extraStages: {}, eternalUnlocked: false, coursePackRevision: 0, mode: "story", challengeStage: 1,
   elapsed: 0, lastTimeBonus: 0, lastBGain: 0, combo: 0, comboTimer: 0, maxCombo: 0,
   lastShareText: "", equippedTrail: "none", equippedTheme: "none", equippedAccessory: "none",
   totalBricksDestroyed: 0, totalPlays: 0, shieldAvailable: false, comboGuardAvailable: false,
@@ -766,7 +834,8 @@ const state = {
   fever: 0, feverMax: SURVIVAL_FEVER_MAX, hyperFeverTimer: 0,
   paddleDurability: 100, paddleMaxDurability: 100, magnetUnlocked: false, magnetActive: false,
   gameOverReason: "", dailySeed: "", survivalRecordVersion: 1, survivalHudTimer: 0, survivalHudLastAt: 0, survivalRankingKey: "",
-  splitCooldown: 0, noMissRun: true, bossHp: 0, bossMaxHp: 0, bossActive: false, bossFireTimer: 0
+  splitCooldown: 0, noMissRun: true, bossHp: 0, bossMaxHp: 0, bossActive: false, bossFireTimer: 0,
+  stageBossActive: false, stageBossHp: 0, ionSurgeTimer: 4, ionSurgeFlash: 0, ionSurgeDirection: 1
 };
 const paddle = { x: 350, y: 550, width: 100, baseWidth: 100, height: 15, speed: 600, laserTimer: 0, laserShotTimer: 0 };
 const activeBuffs = { expand: 0, laser: 0 };
@@ -905,6 +974,7 @@ const sound = new SoundEngine();
 function loadGameData() {
   const saved = localStorage.getItem(SAVE_KEY);
   if (!saved) { updateHomeHUD(); updateVolumeLabels(); return; }
+  let migratedCoursePacks = false;
   try {
     const data = JSON.parse(saved);
     state.highScore = Number(data.highScore) || 0;
@@ -925,6 +995,8 @@ function loadGameData() {
     state.installedPacks = Array.isArray(data.installedPacks) ? data.installedPacks : [];
     state.eternalUnlocked = !!data.eternalUnlocked;
     state.extraStages = data.extraStages || {};
+    state.coursePackRevision = Number(data.coursePackRevision) || 0;
+    migratedCoursePacks = migrateCoursePackProgress();
     state.language = data.language === "en" ? "en" : "ja";
     state.playerName = sanitizePlayerName(data.playerName || "NOVA_07");
     state.titleRank = data.titleRank || getTitleRank(Number(data.survivalBestScore) || 0);
@@ -938,6 +1010,7 @@ function loadGameData() {
     if (data.seVol !== undefined) { sound.seVolume = Number(data.seVol); DOM.sliderSe.value = Math.round(sound.seVolume * 100); }
     DOM.shake.checked = data.shake !== false;
   } catch (e) {}
+  if (migratedCoursePacks) saveGameData();
   updateVolumeLabels();
   updateHomeHUD();
   applyTheme();
@@ -949,7 +1022,7 @@ function saveGameData() {
     equippedTrail: state.equippedTrail, equippedTheme: state.equippedTheme, equippedAccessory: state.equippedAccessory,
     totalBricksDestroyed: state.totalBricksDestroyed, totalPlays: state.totalPlays,
     achievements: state.achievements, installedPacks: state.installedPacks, extraStages: state.extraStages, eternalUnlocked: state.eternalUnlocked,
-    language: state.language, playerName: state.playerName, titleRank: state.titleRank, onlineRank: state.onlineRank,
+    coursePackRevision: COURSE_PACK_REVISION, language: state.language, playerName: state.playerName, titleRank: state.titleRank, onlineRank: state.onlineRank,
     survivalBestTime: state.survivalBestTime, survivalBestScore: state.survivalBestScore, dailyBestScore: state.dailyBestScore, dailyRank: state.dailyRank,
     bgmVol: sound.bgmVolume, seVol: sound.seVolume, shake: DOM.shake.checked
   };
@@ -1012,6 +1085,7 @@ function showPanel(name) {
 
 function renderStageGrid(target, onPick, challengePick) {
   const host = target || DOM.stageGrid;
+  const isMainStageGrid = !target || target === DOM.stageGrid;
   host.innerHTML = "";
   const max = totalStageCount();
   for (let stage = 1; stage <= max; stage++) {
@@ -1025,12 +1099,16 @@ function renderStageGrid(target, onPick, challengePick) {
     if (cleared) card.classList.add("cleared");
     if (challengePick && stage === state.challengeStage) card.classList.add("equipped");
     const badge = locked ? t("locked") : cleared ? t("cleared") : t("available");
-    card.innerHTML = `<div class="stage-badge">${badge}</div><div class="stage-num">${stage}</div><div class="stage-name">${config.name}</div><div class="stage-description">${config.description}</div>`;
+      const isBossStage = stage % STAGE_BOSS_INTERVAL === 0;
+      card.innerHTML = `<div class="stage-badge">${isBossStage ? `BOSS • ${badge}` : badge}</div><div class="stage-num">${stage}</div><div class="stage-name">${config.name}</div><div class="stage-description">${config.description}${isBossStage ? `<br><b style="color:#ff4a5a">10 HP BOSS</b>` : ""}</div>`;
     if (!locked) {
       card.addEventListener("click", () => {
         sound.init();
         if (onPick) onPick(stage);
-        else startStage(stage, "story");
+        else {
+          const selectedMode = isMainStageGrid ? ($("stage-environment-select")?.value || "story") : "story";
+          startStage(stage, selectedMode);
+        }
       });
     }
     host.appendChild(card);
@@ -1126,6 +1204,7 @@ function installPackData(pack) {
   if (pack.requiresCode && !state.eternalUnlocked) return;
   const stages = pack.stages || {};
   Object.keys(stages).forEach(k => { state.extraStages[Number(k)] = stages[k]; });
+  if (pack.id === ETERNAL_PACK.id) state.coursePackRevision = COURSE_PACK_REVISION;
   if (!state.installedPacks.includes(pack.id)) state.installedPacks.push(pack.id);
   unlockAchievement("pack_dl");
   saveGameData();
@@ -1177,6 +1256,7 @@ function showHomeScreen() {
 }
 
 function createBrick(stage, row, col) {
+  const config = getStageConfig(stage) || STAGES[1];
   let type = "normal", hp = 1, color = COLORS.blue;
   switch (stage) {
     case 1: break;
@@ -1294,10 +1374,19 @@ function createBrick(stage, row, col) {
       else { type = "speed"; color = COLORS.yellow; }
       break;
     }
+    case 44:
+    case 45:
+    case 46: {
+      const cell = SPACE_BATTLE_BLOCKS[config.patternRows?.[row]?.[col]];
+      if (!cell) return null;
+      ({ type, hp, color } = cell);
+      break;
+    }
     default: {
       if (stage > 25) {
-        const tier = Math.min(3, Math.floor((stage - 26) / 10));
-        const bucket = (stage * 31 + row * 7 + col * 13) % 9;
+        const patternStage = config.patternStage || stage;
+        const tier = Math.min(3, Math.floor((patternStage - 26) / 10));
+        const bucket = (patternStage * 31 + row * 7 + col * 13) % 9;
         if (bucket === 0) { type = "hardcore"; hp = 3 + tier; color = COLORS.purple; }
         else if (bucket === 1) { type = "gold"; color = COLORS.gold; }
         else if (bucket === 2) { type = "durable"; hp = 2; color = COLORS.pink; }
@@ -1339,6 +1428,35 @@ function createLevelBricks(stage) {
   }
   if (!result.length) result.push(createBrick(1, 0, 0));
   return result;
+}
+function createStageBoss() {
+  state.stageBossActive = true;
+  state.stageBossHp = STAGE_BOSS_HP;
+  state.stageBossReinforcementIndex = 0;
+  return { x: GAME_WIDTH / 2 - 110, y: 290, width: 220, height: 54, type: "boss", hp: STAGE_BOSS_HP, maxHp: STAGE_BOSS_HP, color: "#ff3355", alive: true, hitAnim: 0 };
+}
+function spawnStageBossReinforcements() {
+  const wave = state.stageBossReinforcementIndex++;
+  const layout = wave % 3;
+  const y = 354 + layout * 34;
+  const types = wave === 0 ? ["normal", "durable", "normal"] : wave === 1 ? ["speed", "hardcore", "durable"] : ["bomb", "hardcore", "bomb"];
+  const positions = [145, 363, 581];
+  types.forEach((type, index) => {
+    const hp = type === "hardcore" ? 3 : type === "durable" ? 2 : 1;
+    const color = type === "hardcore" ? COLORS.purple : type === "durable" ? COLORS.pink : type === "speed" ? COLORS.yellow : type === "bomb" ? COLORS.danger : COLORS.blue;
+    bricks.push({ x: positions[index], y, width: 74, height: 22, type, hp, maxHp: hp, color, alive: true, hitAnim: 0, bossSpawned: true });
+  });
+  addFloatingText(GAME_WIDTH / 2, y - 12, "BOSS REINFORCEMENTS!", COLORS.danger);
+  sound.playSE("powerup");
+}
+function updateStageBoss() {
+  if (!state.stageBossActive) return;
+  const boss = bricks.find(brick => brick.type === "boss" && brick.alive);
+  if (!boss) { state.stageBossActive = false; state.stageBossHp = 0; return; }
+  state.stageBossHp = boss.hp;
+  while (state.stageBossReinforcementIndex < STAGE_BOSS_REINFORCEMENT_HP.length && boss.hp <= STAGE_BOSS_REINFORCEMENT_HP[state.stageBossReinforcementIndex]) {
+    spawnStageBossReinforcements();
+  }
 }
 function createConductorBricks() {
   const width = 74, height = 22, padding = 10, offsetTop = 80, offsetLeft = 28;
@@ -1613,6 +1731,8 @@ function updateSurvivalBoss(delta) {
 }
 function startSurvival() {
   state.mode = "survival"; state.currentStage = 0; state.score = 0; state.lives = 3; state.playing = true; state.paused = false;
+  state.stageBossActive = false; state.stageBossHp = 0; state.stageBossReinforcementIndex = 0;
+  state.bossActive = false; state.bossHp = 0; state.bossMaxHp = 0;
   state.screenShake = 0; state.blindTimer = 0; state.flashTimer = 0; state.elapsed = 0; state.survivalElapsed = 0; state.survivalWave = 1; state.survivalNextDescent = SURVIVAL_START_INTERVAL; state.survivalDescentInterval = SURVIVAL_START_INTERVAL; state.fever = 0; state.hyperFeverTimer = 0; state.combo = 0; state.comboTimer = 0; state.maxCombo = 0; state.gameOverReason = "";
   state.paddleMaxDurability = state.owned.includes("item_repair") ? 130 : 100; state.paddleDurability = state.paddleMaxDurability; state.magnetUnlocked = state.owned.includes("item_magnet");
   state.shieldAvailable = state.equippedAccessory === "item_shield"; state.comboGuardAvailable = state.equippedAccessory === "item_combo_guard";
@@ -1640,7 +1760,16 @@ function startStage(stage, mode) {
   paddle.laserShotTimer = 0;
   activeBuffs.expand = 0;
   activeBuffs.laser = 0;
-  bricks = (mode === "conductor") ? createConductorBricks() : createLevelBricks(stage);
+  state.stageBossActive = false;
+  state.stageBossHp = 0;
+  state.stageBossReinforcementIndex = 0;
+  state.bossActive = false;
+  state.bossHp = 0;
+  state.bossMaxHp = 0;
+  state.ionSurgeTimer = 3.5;
+  state.ionSurgeFlash = 0;
+  bricks = createLevelBricks(stage);
+  if (stage % STAGE_BOSS_INTERVAL === 0) bricks.push(createStageBoss());
   items = []; particles = []; floatingTexts = []; lasers = [];
   resetBall();
   input.left = input.right = input.keyboardActive = false;
@@ -1713,12 +1842,14 @@ function comboMultiplier() {
 }
 
 function damageBrick(brick, source) {
+  if (!brick || !brick.alive || brick.type === "shield") return;
   let dmg = 1;
-  if (source === "ball" && state.equippedBall === "ball_fire") dmg = 2;
+  if (source === "ball" && state.equippedBall === "ball_fire" && brick.type !== "boss") dmg = 2;
   brick.hp -= dmg;
+  if (brick.type === "boss") state.stageBossHp = Math.max(0, brick.hp);
   brick.hitAnim = 1.0;
   registerCombo();
-  let pts = brick.type === "gold" ? 300 : 10;
+  let pts = brick.type === "boss" ? 150 : brick.type === "gold" ? 300 : 10;
   if (source === "ball" && state.equippedBall === "ball_ice") pts += 25;
   if (source === "ball" && state.equippedBall === "ball_comet" && brick.type === "gold") pts += 60;
   pts = Math.floor(pts * comboMultiplier());
@@ -1729,7 +1860,7 @@ function damageBrick(brick, source) {
 
   if (source === "ball" && state.equippedBall === "ball_plasma") {
     for (const other of bricks) {
-      if (!other.alive || other === brick) continue;
+      if (!other.alive || other === brick || other.type === "shield" || other.type === "boss") continue;
       const near = Math.abs((other.x + other.width / 2) - (brick.x + brick.width / 2)) < 90 && Math.abs((other.y + other.height / 2) - (brick.y + brick.height / 2)) < 40;
       if (near) {
         other.hp -= 1;
@@ -1750,13 +1881,19 @@ function damageBrick(brick, source) {
   }
   brick.alive = false;
   state.totalBricksDestroyed++;
-  const isHard = brick.type === "hardcore" || brick.type === "durable";
+  if (brick.type === "boss") {
+    state.stageBossActive = false;
+    state.stageBossHp = 0;
+    state.score += 500;
+    addFloatingText(GAME_WIDTH / 2, brick.y - 12, "BOSS DEFEATED! +500", COLORS.gold);
+  }
+  const isHard = brick.type === "hardcore" || brick.type === "durable" || brick.type === "boss";
   createExplosion(brick.x + brick.width / 2, brick.y + brick.height / 2, brick.color, isHard ? 22 : 14, isHard);
   if (DOM.shake.checked) state.screenShake = isHard ? 7 : 4;
   sound.playSE(isHard ? "break_hard" : "break");
   if (brick.type === "bomb") {
     for (const other of bricks) {
-      if (!other.alive || other === brick) continue;
+      if (!other.alive || other === brick || other.type === "shield" || other.type === "boss") continue;
       const dx = Math.abs((other.x + other.width / 2) - (brick.x + brick.width / 2));
       const dy = Math.abs((other.y + other.height / 2) - (brick.y + brick.height / 2));
       if (dx < 115 && dy < 55) {
@@ -1803,7 +1940,7 @@ function damageBrick(brick, source) {
   }
   if (source === "ball" && state.equippedBall === "ball_nova") {
     for (const other of bricks) {
-      if (!other.alive || other === brick) continue;
+      if (!other.alive || other === brick || other.type === "shield" || other.type === "boss") continue;
       const dx = Math.abs((other.x + other.width / 2) - (brick.x + brick.width / 2));
       const dy = Math.abs((other.y + other.height / 2) - (brick.y + brick.height / 2));
       if (dx < 95 && dy < 60) {
@@ -1831,7 +1968,7 @@ function damageBrick(brick, source) {
   dropItem(brick.x + brick.width / 2, brick.y + brick.height / 2);
 }
 
-function allBricksDestroyed() { return !bricks.some(b => b.alive); }
+function allBricksDestroyed() { return !bricks.some(brick => brick.alive && brick.type !== "shield"); }
 function parTimeFor(stage) { return 40 + stage * 6; }
 function applyClearTimeScore() {
   const par = parTimeFor(state.currentStage);
@@ -2095,7 +2232,20 @@ function update(delta) {
   updatePaddle(delta);
   updateMagnet(delta);
   if (stickyBall && balls[0]) { balls[0].x = paddle.x + paddle.width / 2; balls[0].y = paddle.y - balls[0].radius; }
-  updateLasers(delta); updateBalls(delta); updateMovingBricks(delta); updateItems(delta); updateParticles(delta);
+  updateLasers(delta); updateBalls(delta); updateStageBoss(); updateMovingBricks(delta); updateItems(delta); updateParticles(delta);
+  if (state.mode === "conductor") {
+    state.ionSurgeTimer -= delta;
+    state.ionSurgeFlash = Math.max(0, state.ionSurgeFlash - delta);
+    if (state.ionSurgeTimer <= 0) {
+      state.ionSurgeTimer = 4 + Math.random() * 2;
+      state.ionSurgeFlash = 0.42;
+      state.ionSurgeDirection = Math.random() < 0.5 ? -1 : 1;
+      balls.forEach(ball => { ball.vx = Math.max(-9, Math.min(9, ball.vx + state.ionSurgeDirection * 1.8)); });
+      addFloatingText(GAME_WIDTH / 2, 200, "ION SURGE!", "#66e0ff");
+      if (DOM.shake.checked) state.screenShake = 4;
+      sound.playSE("laser");
+    }
+  }
   if (state.mode === "survival") updateSurvival(delta);
   if (balls.length === 0 && !stickyBall && state.lives > 0) {
     paddle.width = paddle.baseWidth; paddle.laserTimer = 0; activeBuffs.expand = 0; activeBuffs.laser = 0; resetBall();
@@ -2210,7 +2360,15 @@ function drawBricks() {
       ctx.scale(scale, scale);
       ctx.translate(-(brick.x + brick.width / 2), -(brick.y + brick.height / 2));
     }
-    if (brick.type === "gold") {
+    if (brick.type === "boss") {
+      const g = ctx.createLinearGradient(brick.x, brick.y, brick.x + brick.width, brick.y + brick.height);
+      g.addColorStop(0, "#ffb347");
+      g.addColorStop(0.45, "#d92345");
+      g.addColorStop(1, "#62142c");
+      ctx.fillStyle = g;
+      ctx.shadowColor = COLORS.danger;
+      ctx.shadowBlur = 18;
+    } else if (brick.type === "gold") {
       const g = ctx.createLinearGradient(brick.x, brick.y, brick.x, brick.y + brick.height);
       g.addColorStop(0, "#fff6c8");
       g.addColorStop(0.5, "#ffd700");
@@ -2223,9 +2381,25 @@ function drawBricks() {
       ctx.fillStyle = brick.color;
     }
     ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
-    ctx.strokeStyle = "rgba(255,255,255,0.3)";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = brick.type === "boss" ? "#ffe0a3" : "rgba(255,255,255,0.3)";
+    ctx.lineWidth = brick.type === "boss" ? 3 : 2;
     ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
+    if (brick.type === "boss") {
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#fff5de";
+      ctx.font = "bold 13px 'Courier New'";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("SECTOR WARDEN", brick.x + brick.width / 2, brick.y + 17);
+      const pipWidth = 13;
+      const pipGap = 5;
+      const totalWidth = STAGE_BOSS_HP * pipWidth + (STAGE_BOSS_HP - 1) * pipGap;
+      const firstX = brick.x + (brick.width - totalWidth) / 2;
+      for (let pip = 0; pip < STAGE_BOSS_HP; pip++) {
+        ctx.fillStyle = pip < brick.hp ? "#ffe07b" : "rgba(20,8,18,.65)";
+        ctx.fillRect(firstX + pip * (pipWidth + pipGap), brick.y + 34, pipWidth, 8);
+      }
+    }
     if (brick.type === "bomb" || brick.type === "heal" || brick.type === "tesla" || brick.type === "shield") {
       ctx.fillStyle = "#fff";
       ctx.font = "bold 15px 'Courier New'";
@@ -2233,7 +2407,7 @@ function drawBricks() {
       const icon = brick.type === "bomb" ? "✹" : brick.type === "heal" ? "+" : brick.type === "tesla" ? "⚡" : "🛡";
       ctx.fillText(icon, brick.x + brick.width / 2, brick.y + brick.height / 2);
     }
-    if (brick.hp > 1 && brick.hp < 90) {
+    if (brick.type !== "boss" && brick.hp > 1 && brick.hp < 90) {
       ctx.fillStyle = "rgba(0,0,0,0.35)";
       ctx.font = "bold 10px 'Courier New'";
       ctx.textAlign = "center";
@@ -2364,7 +2538,15 @@ function drawHUD() {
     ctx.fillStyle = COLORS.ice; ctx.font = "bold 14px 'Courier New'";
     ctx.fillText(state.windDir > 0 ? "→ 強風 (右)" : "← 強風 (左)", 25, 72);
   }
-  let buffY = 55;
+  if (state.mode === "conductor") {
+    ctx.fillStyle = "#66e0ff"; ctx.font = "bold 13px 'Courier New'";
+    ctx.fillText(`ION SURGE: ${state.ionSurgeTimer.toFixed(1)}s`, 25, 72);
+  }
+  if (state.stageBossActive) {
+    ctx.fillStyle = COLORS.danger; ctx.font = "bold 13px 'Courier New'";
+    ctx.fillText(`BOSS CORE: ${state.stageBossHp}/${STAGE_BOSS_HP}`, 530, 52);
+  }
+  let buffY = state.stageBossActive ? 84 : 55;
   if (activeBuffs.expand > 0) { drawBuffStatus("EXPAND", activeBuffs.expand, 8000, "#00ff00", buffY); buffY += 22; }
   if (activeBuffs.laser > 0) { drawBuffStatus("LASER", activeBuffs.laser, 6000, COLORS.danger, buffY); buffY += 22; }
   if (balls.length > 1) drawBuffStatus(`BALLS x${balls.length}`, 1, 1, COLORS.blue, buffY);
@@ -2397,6 +2579,21 @@ function draw() {
   }
   if (state.mode === "mirror") {
     ctx.fillStyle = "rgba(255,0,170,0.05)"; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+  }
+  if (state.mode === "conductor" && state.ionSurgeFlash > 0) {
+    ctx.save();
+    ctx.fillStyle = `rgba(102,224,255,${Math.min(0.16, state.ionSurgeFlash * 0.28)})`;
+    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.strokeStyle = "rgba(180,245,255,.8)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(80, 100);
+    ctx.lineTo(230, 190);
+    ctx.lineTo(370, 142);
+    ctx.lineTo(520, 248);
+    ctx.lineTo(710, 180);
+    ctx.stroke();
+    ctx.restore();
   }
   if (state.mode === "sandstorm") {
     ctx.fillStyle = "rgba(216,180,106,0.06)"; ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
